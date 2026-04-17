@@ -70,22 +70,7 @@ function highlightStars(upTo) {
   });
 }
 
-function initItemsGrid() {
-  const grid = document.getElementById('itemsGrid');
-
-  grid.innerHTML = PRODUCTS.map(p => `
-    <label class="item-checkbox" data-sku="${p.sku}">
-      <input type="checkbox" name="items_purchased" value="${p.name}" />
-      ${p.name}
-    </label>
-  `).join('');
-
-  grid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-    cb.addEventListener('change', () => {
-      cb.closest('.item-checkbox').classList.toggle('checked', cb.checked);
-    });
-  });
-}
+function initItemsGrid() {}
 
 function initCharCounters() {
   [['comments', 'commentsCount', 1000], ['suggestions', 'suggestionsCount', 500]].forEach(([id, countId, max]) => {
@@ -98,8 +83,9 @@ function initCharCounters() {
 }
 
 function getSelectedItems() {
-  return Array.from(document.querySelectorAll('input[name="items_purchased"]:checked'))
-    .map(cb => cb.value);
+  const val = document.getElementById('itemsPurchased').value.trim();
+  if (!val) return [];
+  return val.split(',').map(s => s.trim()).filter(s => s !== '');
 }
 
 function validateForm() {
@@ -183,7 +169,6 @@ function initSubmitAnother() {
     document.getElementById('ratingHint').textContent = '';
     document.getElementById('commentsCount').textContent   = '0 / 1000';
     document.getElementById('suggestionsCount').textContent = '0 / 500';
-    document.querySelectorAll('.item-checkbox').forEach(l => l.classList.remove('checked'));
 
     document.getElementById('successSection').classList.add('hidden');
     document.getElementById('formSection').classList.remove('hidden');

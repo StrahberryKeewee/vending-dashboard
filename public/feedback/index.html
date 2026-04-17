@@ -93,7 +93,7 @@
 
       <!-- Items Purchased -->
       <div class="field">
-        <label class="field__label">
+        <label class="field__label" for="itemsPurchased">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
@@ -101,9 +101,14 @@
           </svg>
           Item(s) Purchased
         </label>
-        <div class="items-grid" id="itemsGrid">
-          <!-- Populated by JS -->
-        </div>
+        <input
+          type="text"
+          id="itemsPurchased"
+          name="items_purchased"
+          class="field__input"
+          placeholder="e.g. Chips, Coca Cola, Snickers"
+          maxlength="300"
+        />
       </div>
 
       <!-- Suggestions -->
