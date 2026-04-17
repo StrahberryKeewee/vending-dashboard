@@ -1,4 +1,4 @@
-const API_BASE = '../../api';
+const API_BASE = '/api';
 
 const PRODUCTS = [
   { sku: 'BEV-001', name: 'Coca Cola',    category: 'Beverages' },

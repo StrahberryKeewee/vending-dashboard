@@ -1,4 +1,4 @@
-const API_BASE = '../../api';
+const API_BASE = '/api';
 
 let donutChart     = null;
 let trendChart     = null;
