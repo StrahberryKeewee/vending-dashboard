@@ -1,5 +1,14 @@
 <?php
 
+$_dotenv = dirname(__DIR__, 2) . '/.env';
+if (file_exists($_dotenv)) {
+    foreach (file($_dotenv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $_line) {
+        if (str_starts_with(trim($_line), '#') || !str_contains($_line, '=')) continue;
+        [$_k, $_v] = explode('=', $_line, 2);
+        $_ENV[trim($_k)] = trim($_v);
+    }
+}
+
 class Database {
     private static ?PDO $instance = null;
 

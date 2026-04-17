@@ -338,8 +338,8 @@ body {
 .trend-header svg { width: 15px; height: 15px; }
 
 .trend-wrap canvas {
-  flex: 1;
-  min-height: 180px;
+  height: 220px !important;
+  max-height: 220px;
 }
 
 /* Feedback table */
