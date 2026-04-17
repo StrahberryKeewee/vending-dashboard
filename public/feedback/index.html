@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vending Machine Feedback</title>
+  <link rel="stylesheet" href="css/feedback.css" />
+</head>
+<body>
+
+<div class="page">
+
+  <header class="page__header">
+    <div class="page__brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="5" y="2" width="14" height="20" rx="2"/>
+        <line x1="5" y1="8"  x2="19" y2="8"/>
+        <line x1="5" y1="14" x2="19" y2="14"/>
+        <rect x="9" y="10" width="6" height="3" rx="1"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="page__title">Share Your Feedback</h1>
+      <p class="page__subtitle">Help us improve your vending experience</p>
+    </div>
+  </header>
+
+  <main class="form-card" id="formSection">
+
+    <form id="feedbackForm" novalidate>
+
+      <!-- Hidden: machine ID -->
+      <input type="hidden" id="machineId" name="machine_id" />
+
+      <!-- Location (auto-filled, read-only) -->
+      <div class="field">
+        <label class="field__label" for="location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Location
+        </label>
+        <input
+          type="text"
+          id="location"
+          name="location"
+          class="field__input field__input--readonly"
+          readonly
+          placeholder="Detecting location..."
+        />
+      </div>
+
+      <!-- Star Rating -->
+      <div class="field">
+        <label class="field__label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          Overall Rating <span class="required">*</span>
+        </label>
+        <div class="star-rating" id="starRating" role="radiogroup" aria-label="Rating">
+          <button type="button" class="star-btn" data-value="1" aria-label="1 star">&#9733;</button>
+          <button type="button" class="star-btn" data-value="2" aria-label="2 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-value="3" aria-label="3 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-value="4" aria-label="4 stars">&#9733;</button>
+          <button type="button" class="star-btn" data-value="5" aria-label="5 stars">&#9733;</button>
+        </div>
+        <input type="hidden" id="ratingInput" name="rating" value="" />
+        <span class="field__hint" id="ratingHint"></span>
+        <span class="field__error hidden" id="ratingError">Please select a rating.</span>
+      </div>
+
+      <!-- Comments / Concerns -->
+      <div class="field">
+        <label class="field__label" for="comments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Comments / Concerns <span class="required">*</span>
+        </label>
+        <textarea
+          id="comments"
+          name="comments"
+          class="field__input field__textarea"
+          placeholder="Tell us about your experience..."
+          maxlength="1000"
+          rows="4"
+        ></textarea>
+        <span class="field__count" id="commentsCount">0 / 1000</span>
+        <span class="field__error hidden" id="commentsError">Please enter your comments.</span>
+      </div>
+
+      <!-- Items Purchased -->
+      <div class="field">
+        <label class="field__label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          Item(s) Purchased
+        </label>
+        <div class="items-grid" id="itemsGrid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="field">
+        <label class="field__label" for="suggestions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Suggestions
+        </label>
+        <textarea
+          id="suggestions"
+          name="suggestions"
+          class="field__input field__textarea"
+          placeholder="What products would you like to see? Any other suggestions?"
+          maxlength="500"
+          rows="3"
+        ></textarea>
+        <span class="field__count" id="suggestionsCount">0 / 500</span>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span id="submitLabel">Submit Feedback</span>
+        <svg id="submitSpinner" class="spinner hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" stroke-opacity=".25"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+    </form>
+
+  </main>
+
+  <!-- Success state -->
+  <div class="success-card hidden" id="successSection">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+    </div>
+    <h2>Thank you!</h2>
+    <p>Your feedback has been submitted successfully. We appreciate you taking the time to help us improve.</p>
+    <button class="btn-submit btn-submit--outline" id="submitAnother">Submit Another</button>
+  </div>
+
+</div>
+
+<script src="js/feedback.js"></script>
+</body>
+</html>

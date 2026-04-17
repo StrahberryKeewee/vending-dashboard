@@ -1,0 +1,322 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --accent:       #2d6af4;
+  --accent-dark:  #1d55d4;
+  --accent-light: #dbeafe;
+  --bg:           #f0f2f8;
+  --surface:      #ffffff;
+  --border:       #e4e7ef;
+  --text-primary: #1a2535;
+  --text-secondary:#6b7280;
+  --text-muted:   #9ca3af;
+  --error:        #ef4444;
+  --error-bg:     #fef2f2;
+  --green:        #22c55e;
+  --green-bg:     #f0fdf4;
+  --radius:       14px;
+  --shadow:       0 2px 8px rgba(0,0,0,.07), 0 8px 32px rgba(0,0,0,.06);
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+/* Header */
+.page__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.page__brand {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.page__brand svg { width: 24px; height: 24px; }
+
+.page__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -.2px;
+}
+
+.page__subtitle {
+  font-size: .8rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* Form card */
+.form-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 28px 32px;
+}
+
+@media (max-width: 480px) {
+  .form-card { padding: 20px 16px 24px; }
+}
+
+/* Fields */
+.field {
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.field__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 8px;
+}
+
+.field__label svg { width: 14px; height: 14px; }
+
+.required {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.field__input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .9rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+  appearance: none;
+}
+
+.field__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45,106,244,.12);
+}
+
+.field__input.has-error { border-color: var(--error); }
+.field__input.has-error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,.12); }
+
+.field__input--readonly {
+  background: #f9fafb;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.field__textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.field__count {
+  display: block;
+  text-align: right;
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.field__hint {
+  display: block;
+  font-size: .78rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  min-height: 18px;
+}
+
+.field__error {
+  display: block;
+  font-size: .78rem;
+  color: var(--error);
+  margin-top: 5px;
+}
+
+.field__error.hidden { display: none; }
+
+/* Star rating */
+.star-rating {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color .1s, transform .1s;
+}
+
+.star-btn:hover,
+.star-btn.hovered,
+.star-btn.selected {
+  color: #fbbf24;
+}
+
+.star-btn:hover { transform: scale(1.15); }
+
+/* Items grid */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.item-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .84rem;
+  color: var(--text-secondary);
+  transition: border-color .15s, background .15s, color .15s;
+  user-select: none;
+}
+
+.item-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.item-checkbox:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.item-checkbox.checked {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Submit button */
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-submit:hover:not(:disabled) { background: var(--accent-dark); border-color: var(--accent-dark); }
+.btn-submit:active:not(:disabled) { transform: scale(.99); }
+.btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-submit--outline {
+  background: transparent;
+  color: var(--accent);
+  margin-top: 16px;
+}
+
+.btn-submit--outline:hover { background: var(--accent-light); }
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin .8s linear infinite;
+}
+
+.spinner.hidden { display: none; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success card */
+.success-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 48px 28px;
+  text-align: center;
+}
+
+.success-card.hidden { display: none; }
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--green-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: var(--green);
+}
+
+.success-icon svg { width: 34px; height: 34px; }
+
+.success-card h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.success-card p {
+  color: var(--text-secondary);
+  font-size: .9rem;
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
