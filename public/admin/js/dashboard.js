@@ -187,7 +187,7 @@ async function loadFeedback() {
       ? `<span class="suggestion-text">${escHtml(row.suggestions)}</span>`
       : '<span class="no-suggestion">None</span>';
 
-    return `<tr>
+    return `<tr id="feedback-row-${row.id}">
       <td><div class="stars">${buildStars(row.rating)}</div></td>
       <td>${escHtml(row.comments ?? '')}</td>
       <td>
@@ -201,6 +201,16 @@ async function loadFeedback() {
       </td>
       <td>${itemsHtml}</td>
       <td>${suggHtml}</td>
+      <td>
+        <button class="btn-delete" onclick="deleteFeedback(${row.id})" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </button>
+      </td>
     </tr>`;
   }).join('');
 
@@ -235,6 +245,19 @@ function loadMachines() {
       <td><a class="qr-link" href="${url}" target="_blank">${url}</a></td>
     </tr>`;
   }).join('');
+}
+
+async function deleteFeedback(id) {
+  if (!confirm('Delete this review?')) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/feedback/delete.php?id=${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    document.getElementById(`feedback-row-${id}`)?.remove();
+    showToast('Review deleted');
+  } catch {
+    showToast('Failed to delete review');
+  }
 }
 
 function escHtml(str) {
