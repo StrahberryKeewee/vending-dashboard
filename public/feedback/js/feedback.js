@@ -150,7 +150,6 @@ async function handleSubmit(e) {
       throw new Error(json.error ?? 'Submission failed');
     }
 
-    document.getElementById('formSection').classList.add('hidden');
     document.getElementById('successSection').classList.remove('hidden');
 
   } catch (err) {
@@ -170,8 +169,8 @@ function initSubmitAnother() {
     document.getElementById('commentsCount').textContent   = '0 / 1000';
     document.getElementById('suggestionsCount').textContent = '0 / 500';
 
+    document.getElementById('feedbackForm').reset();
     document.getElementById('successSection').classList.add('hidden');
-    document.getElementById('formSection').classList.remove('hidden');
   });
 }
 

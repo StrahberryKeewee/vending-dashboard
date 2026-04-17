@@ -282,16 +282,35 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Success card */
+/* Success overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+
+.overlay.hidden { display: none; }
+
 .success-card {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 48px 28px;
+  padding: 48px 36px;
   text-align: center;
+  max-width: 420px;
+  width: 100%;
+  animation: popIn .25s ease;
 }
 
-.success-card.hidden { display: none; }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 .success-icon {
   width: 64px;
