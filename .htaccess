@@ -11,10 +11,6 @@ ServerSignature Off
   Require all denied
 </FilesMatch>
 
-<DirectoryMatch "^.*(api/config|scripts|database|vendor)">
-  Require all denied
-</DirectoryMatch>
-
 # Pretty URL rewrites for the API
 <IfModule mod_rewrite.c>
   RewriteEngine On
