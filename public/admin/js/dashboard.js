@@ -1,16 +1,10 @@
 const API_BASE = '../../api';
 
-let donutChart = null;
-let trendChart = null;
-let currentPeriod = 'weekly';
-
-const MACHINES = [
-  { id: 'VM001', location: 'Building A - Lobby',     building: 'Building A', floor: 'Lobby' },
-  { id: 'VM002', location: 'Building B - 2nd Floor', building: 'Building B', floor: '2nd Floor' },
-  { id: 'VM003', location: 'Building C - Cafeteria', building: 'Building C', floor: 'Cafeteria' },
-  { id: 'VM004', location: 'Building A - 3rd Floor', building: 'Building A', floor: '3rd Floor' },
-  { id: 'VM005', location: 'Building D - Break Room', building: 'Building D', floor: '1st Floor' },
-];
+let donutChart     = null;
+let trendChart     = null;
+let currentPeriod  = 'weekly';
+let currentMachine = '';
+let allMachines    = [];
 
 async function apiFetch(path) {
   const res = await fetch(API_BASE + path);
@@ -18,8 +12,35 @@ async function apiFetch(path) {
   return res.json();
 }
 
+function machineParam() {
+  return currentMachine ? `&machine_id=${encodeURIComponent(currentMachine)}` : '';
+}
+
+async function loadMachinesFromApi() {
+  try {
+    const data = await apiFetch('/machines/list.php');
+    allMachines = data.machines ?? [];
+  } catch {
+    allMachines = [];
+  }
+
+  const select = document.getElementById('machineSelect');
+  allMachines.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value       = m.machine_id;
+    opt.textContent = `${m.machine_id} — ${m.location}`;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', () => {
+    currentMachine = select.value;
+    loadSummary();
+    loadTrend(currentPeriod);
+  });
+}
+
 function formatCurrency(n) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 }
 
 function buildStars(rating) {
@@ -31,7 +52,7 @@ function buildStars(rating) {
 async function loadSummary() {
   let data;
   try {
-    data = await apiFetch('/sales/summary.php');
+    data = await apiFetch('/sales/summary.php?year=' + new Date().getFullYear() + machineParam());
   } catch {
     data = {
       total_ytd: 220800,
@@ -97,7 +118,7 @@ function updateAnalyticsStats(data) {
 async function loadTrend(period) {
   let data;
   try {
-    data = await apiFetch(`/sales/weekly.php?period=${period}`);
+    data = await apiFetch(`/sales/weekly.php?period=${period}${machineParam()}`);
   } catch {
     const defaults = {
       daily:   { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data: [620,740,590,810,930,470,380] },
@@ -144,7 +165,7 @@ async function loadTrend(period) {
           ticks: {
             color: '#9ca3af',
             font: { size: 11 },
-            callback: v => '$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v),
+            callback: v => '$' + (v >= 1000 ? (v / 1000).toFixed(2) + 'k' : v.toFixed(2)),
           },
           beginAtZero: true,
         },
@@ -232,19 +253,47 @@ function updateTransactionStats(count) {
 
 function loadMachines() {
   const tbody = document.getElementById('machinesBody');
-  const origin = window.location.origin;
-  const feedbackBase = origin + '/feedback/';
 
-  tbody.innerHTML = MACHINES.map(m => {
-    const url = `${feedbackBase}?machine=${encodeURIComponent(m.id)}&location=${encodeURIComponent(m.location)}`;
+  if (!allMachines.length) {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="6">No machines found.</td></tr>';
+    return;
+  }
+
+  const origin      = window.location.origin;
+  const feedbackBase = origin + '/public/feedback/';
+
+  tbody.innerHTML = allMachines.map(m => {
+    const url = `${feedbackBase}?machine=${encodeURIComponent(m.machine_id)}&location=${encodeURIComponent(m.location)}`;
     return `<tr>
-      <td><strong>${escHtml(m.id)}</strong></td>
+      <td><strong>${escHtml(m.machine_id)}</strong></td>
       <td>${escHtml(m.location)}</td>
-      <td>${escHtml(m.building)}</td>
-      <td>${escHtml(m.floor)}</td>
+      <td>${escHtml(m.building ?? '')}</td>
+      <td>${escHtml(m.floor ?? '')}</td>
       <td><a class="qr-link" href="${url}" target="_blank">${url}</a></td>
+      <td>
+        <button class="btn-qr" onclick="showQrModal('${escHtml(m.machine_id)}', '${escHtml(m.location)}')">
+          Show QR
+        </button>
+      </td>
     </tr>`;
   }).join('');
+}
+
+function showQrModal(machineId, location) {
+  const origin       = window.location.origin;
+  const url          = `${origin}/public/feedback/?machine=${encodeURIComponent(machineId)}&location=${encodeURIComponent(location)}`;
+  const qrApiUrl     = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+
+  document.getElementById('qrModalTitle').textContent = `QR Code — ${machineId}`;
+  document.getElementById('qrModalImg').src           = qrApiUrl;
+  document.getElementById('qrModalUrl').textContent   = url;
+  document.getElementById('qrModalDownload').href     = qrApiUrl;
+  document.getElementById('qrModal').classList.remove('hidden');
+}
+
+function initQrModal() {
+  document.getElementById('qrModalClose').addEventListener('click',   () => document.getElementById('qrModal').classList.add('hidden'));
+  document.getElementById('qrBackdrop').addEventListener('click',     () => document.getElementById('qrModal').classList.add('hidden'));
 }
 
 async function deleteFeedback(id) {
@@ -315,6 +364,8 @@ document.getElementById('refreshFeedback').addEventListener('click', () => {
 async function init() {
   initNav();
   initPeriodToggle();
+  initQrModal();
+  await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback()]);
 
   setInterval(() => {

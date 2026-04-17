@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 -- Seed: machines
 INSERT INTO machines (machine_id, location, building, floor) VALUES
-  ('VM001', 'Building A - Lobby',     'Building A', 'Lobby'),
+  ('VK200078417', 'The Union at Dearborn', 'The Union', '1st Floor'),
   ('VM002', 'Building B - 2nd Floor', 'Building B', '2nd Floor'),
   ('VM003', 'Building C - Cafeteria', 'Building C', 'Cafeteria'),
   ('VM004', 'Building A - 3rd Floor', 'Building A', '3rd Floor'),

@@ -14,22 +14,27 @@ if ($year === false || $year < 2000 || $year > 2100) {
     $year = (int) date('Y');
 }
 
+$machineId = trim($_GET['machine_id'] ?? '');
+
 $pdo = Database::connect();
+
+$machineFilter  = $machineId !== '' ? ' AND s.machine_id = :machine_id' : '';
+$machineParams  = $machineId !== '' ? [':machine_id' => $machineId] : [];
 
 $totalStmt = $pdo->prepare(
     'SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total
      FROM   sales s
-     WHERE  YEAR(s.sale_time) = :year'
+     WHERE  YEAR(s.sale_time) = :year' . $machineFilter
 );
-$totalStmt->execute([':year' => $year]);
+$totalStmt->execute(array_merge([':year' => $year], $machineParams));
 $total = (float) $totalStmt->fetchColumn();
 
 $prevStmt = $pdo->prepare(
     'SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total
      FROM   sales s
-     WHERE  YEAR(s.sale_time) = :prev_year'
+     WHERE  YEAR(s.sale_time) = :prev_year' . $machineFilter
 );
-$prevStmt->execute([':prev_year' => $year - 1]);
+$prevStmt->execute(array_merge([':prev_year' => $year - 1], $machineParams));
 $prevTotal = (float) $prevStmt->fetchColumn();
 
 $growthPercent = $prevTotal > 0
@@ -41,10 +46,10 @@ $catStmt = $pdo->prepare(
               COALESCE(SUM(s.amount * s.quantity), 0) AS revenue
      FROM     sales s
      JOIN     products p ON p.id = s.product_id
-     WHERE    YEAR(s.sale_time) = :year
+     WHERE    YEAR(s.sale_time) = :year' . $machineFilter . '
      GROUP BY p.category'
 );
-$catStmt->execute([':year' => $year]);
+$catStmt->execute(array_merge([':year' => $year], $machineParams));
 $catRows = $catStmt->fetchAll();
 
 $categoryMap = [

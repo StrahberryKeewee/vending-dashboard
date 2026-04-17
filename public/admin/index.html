@@ -88,10 +88,15 @@
             </svg>
             Profit Overview
           </div>
-          <div class="period-toggle">
-            <button class="period-btn" data-period="daily">Daily</button>
-            <button class="period-btn active" data-period="weekly">Weekly</button>
-            <button class="period-btn" data-period="monthly">Monthly</button>
+          <div class="card__controls">
+            <select class="machine-select" id="machineSelect">
+              <option value="">All Machines</option>
+            </select>
+            <div class="period-toggle">
+              <button class="period-btn" data-period="daily">Daily</button>
+              <button class="period-btn active" data-period="weekly">Weekly</button>
+              <button class="period-btn" data-period="monthly">Monthly</button>
+            </div>
           </div>
         </div>
 
@@ -222,10 +227,11 @@
                 <th>Building</th>
                 <th>Floor</th>
                 <th>QR Code Link</th>
+                <th>QR Code</th>
               </tr>
             </thead>
             <tbody id="machinesBody">
-              <tr class="table-loading"><td colspan="5">Loading...</td></tr>
+              <tr class="table-loading"><td colspan="6">Loading...</td></tr>
             </tbody>
           </table>
         </div>
@@ -233,6 +239,20 @@
     </section>
 
   </main>
+</div>
+
+<!-- QR Code Modal -->
+<div class="qr-modal hidden" id="qrModal">
+  <div class="qr-modal__backdrop" id="qrBackdrop"></div>
+  <div class="qr-modal__box">
+    <div class="qr-modal__header">
+      <span id="qrModalTitle">QR Code</span>
+      <button class="qr-modal__close" id="qrModalClose">&times;</button>
+    </div>
+    <img id="qrModalImg" src="" alt="QR Code" />
+    <p id="qrModalUrl" class="qr-modal__url"></p>
+    <a id="qrModalDownload" download="qr-code.png" class="btn-submit" style="margin-top:12px;text-decoration:none;display:inline-flex;justify-content:center;">Download QR</a>
+  </div>
 </div>
 
 <script src="js/dashboard.js"></script>
