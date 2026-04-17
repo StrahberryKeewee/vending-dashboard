@@ -86,11 +86,16 @@ foreach ($messages as $message) {
         continue;
     }
 
-    $machineId  = trim($payload['machine_id']  ?? '');
-    $productSku = trim($payload['product_sku'] ?? '');
-    $quantity   = (int) ($payload['quantity']  ?? 1);
-    $amount     = (float) ($payload['amount']  ?? 0.0);
-    $timestamp  = $payload['timestamp']        ?? date('c');
+    // SeedLive wraps transactions in an array
+    if (isset($payload[0])) {
+        $payload = $payload[0];
+    }
+
+    $machineId  = trim($payload['EportID']         ?? $payload['machine_id']  ?? '');
+    $productSku = trim($payload['product_sku']    ?? '');
+    $quantity   = (int) ($payload['ProductCount'] ?? $payload['quantity']  ?? 1);
+    $amount     = (float) ($payload['Amount']     ?? $payload['amount']    ?? 0.0);
+    $timestamp  = $payload['TransactionTime']     ?? $payload['timestamp'] ?? date('c');
 
     if ($machineId === '' || $amount <= 0) {
         echo "[WARN] Incomplete payload in message {$messageId}, skipping" . PHP_EOL;
