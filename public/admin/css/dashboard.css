@@ -58,16 +58,20 @@ body {
 }
 
 .sidebar__brand {
-  width: 40px;
-  height: 40px;
-  color: var(--accent);
+  width: 44px;
+  height: 44px;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.sidebar__brand svg { width: 28px; height: 28px; }
+.sidebar__brand img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+}
 
 .sidebar__nav {
   display: flex;
