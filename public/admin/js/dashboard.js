@@ -74,12 +74,10 @@ async function loadSummary() {
   growthEl.style.color = data.growth_percent >= 0 ? '#22c55e' : '#ef4444';
 
   const legendEl = document.getElementById('donutLegend');
-  legendEl.innerHTML = data.categories.map(c =>
-    `<div class="legend-item">
-       <span class="legend-dot" style="background:${c.color}"></span>
-       ${c.label}<br><strong>${c.percent}%</strong>
-     </div>`
-  ).join('');
+  legendEl.innerHTML = `
+    <div class="legend-item" style="grid-column:1/-1;color:var(--text-muted);font-style:italic;font-size:.78rem;">
+      Category breakdown unavailable
+    </div>`;
 
   const ctx = document.getElementById('donutChart').getContext('2d');
   if (donutChart) donutChart.destroy();
@@ -87,10 +85,10 @@ async function loadSummary() {
   donutChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: data.categories.map(c => c.label),
+      labels: ['Total Sales'],
       datasets: [{
-        data:            data.categories.map(c => c.percent),
-        backgroundColor: data.categories.map(c => c.color),
+        data:            [data.total_ytd || 1],
+        backgroundColor: ['#2d6af4'],
         borderWidth:     3,
         borderColor:     '#ffffff',
         hoverOffset:     6,
@@ -100,19 +98,31 @@ async function loadSummary() {
       cutout: '68%',
       plugins: { legend: { display: false }, tooltip: {
         callbacks: {
-          label: ctx => ` ${ctx.label}: ${ctx.raw}%`,
+          label: ctx => ` ${formatCurrency(data.total_ytd)}`,
         },
       }},
       animation: { animateRotate: true, duration: 800 },
     },
   });
-
-  updateAnalyticsStats(data);
 }
 
-function updateAnalyticsStats(data) {
-  const top = data.categories.reduce((a, b) => a.percent > b.percent ? a : b);
-  document.getElementById('statTopCat').textContent = top.label;
+async function loadAnalyticsStats() {
+  let data;
+  try {
+    data = await apiFetch('/sales/stats.php?' + (currentMachine ? `machine_id=${encodeURIComponent(currentMachine)}` : ''));
+  } catch {
+    return;
+  }
+
+  const transactions = document.getElementById('statTransactions');
+  const avgSale      = document.getElementById('statAvgSale');
+  const topCat       = document.getElementById('statTopCat');
+  const avgRating    = document.getElementById('statAvgRating');
+
+  if (transactions) transactions.textContent = data.total_transactions;
+  if (avgSale)      avgSale.textContent      = formatCurrency(data.avg_sale);
+  if (topCat)       topCat.textContent       = '--';
+  if (avgRating)    avgRating.textContent    = data.avg_rating > 0 ? data.avg_rating + ' / 5' : '--';
 }
 
 async function loadTrend(period) {
@@ -235,21 +245,8 @@ async function loadFeedback() {
     </tr>`;
   }).join('');
 
-  updateRatingStat(data.feedback);
-  updateTransactionStats(data.feedback.length);
 }
 
-function updateRatingStat(feedback) {
-  if (!feedback.length) return;
-  const avg = (feedback.reduce((s, r) => s + r.rating, 0) / feedback.length).toFixed(1);
-  const el = document.getElementById('statAvgRating');
-  if (el) el.textContent = avg + ' / 5';
-}
-
-function updateTransactionStats(count) {
-  const el = document.getElementById('statTransactions');
-  if (el) el.textContent = count;
-}
 
 function loadMachines() {
   const tbody = document.getElementById('machinesBody');
@@ -364,7 +361,7 @@ async function init() {
   initPeriodToggle();
   initQrModal();
   await loadMachinesFromApi();
-  await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback()]);
+  await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats()]);
 
   setInterval(() => {
     loadFeedback();
