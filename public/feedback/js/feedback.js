@@ -26,16 +26,52 @@ function getUrlParam(key) {
   return new URLSearchParams(window.location.search).get(key) ?? '';
 }
 
-function initLocation() {
-  const locationInput = document.getElementById('location');
-  const machineInput  = document.getElementById('machineId');
+async function initLocation() {
+  const machineInput = document.getElementById('machineId');
+  const select       = document.getElementById('location');
 
   const machine  = getUrlParam('machine');
-  const location = getUrlParam('location');
+  const location = decodeURIComponent(getUrlParam('location'));
 
-  if (machine)  machineInput.value  = machine;
-  if (location) locationInput.value = decodeURIComponent(location);
-  else          locationInput.value = 'Unknown Location';
+  if (machine) machineInput.value = machine;
+
+  try {
+    const res  = await fetch(`${API_BASE}/machines/list.php`);
+    const data = await res.json();
+    const machines = data.machines ?? [];
+
+    machines.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value       = m.location;
+      opt.textContent = m.location;
+      opt.dataset.machineId = m.machine_id;
+      select.appendChild(opt);
+    });
+
+    if (location) {
+      select.value = location;
+      if (!select.value) {
+        const opt = document.createElement('option');
+        opt.value = location;
+        opt.textContent = location;
+        select.appendChild(opt);
+        select.value = location;
+      }
+    }
+  } catch {
+    const opt = document.createElement('option');
+    opt.value       = 'The Union at Dearborn';
+    opt.textContent = 'The Union at Dearborn';
+    select.appendChild(opt);
+    if (location) select.value = location;
+  }
+
+  select.addEventListener('change', () => {
+    const selected = select.options[select.selectedIndex];
+    if (selected?.dataset.machineId) {
+      machineInput.value = selected.dataset.machineId;
+    }
+  });
 }
 
 function initStarRating() {
@@ -91,6 +127,15 @@ function getSelectedItems() {
 function validateForm() {
   let valid = true;
 
+  const location      = document.getElementById('location').value;
+  const locationError = document.getElementById('locationError');
+  if (!location) {
+    locationError.classList.remove('hidden');
+    valid = false;
+  } else {
+    locationError.classList.add('hidden');
+  }
+
   if (!selectedRating) {
     document.getElementById('ratingError').classList.remove('hidden');
     valid = false;
@@ -128,7 +173,7 @@ async function handleSubmit(e) {
 
   const payload = {
     machine_id:      document.getElementById('machineId').value,
-    location:        document.getElementById('location').value,
+    location:        document.getElementById('location').value.trim(),
     rating:          selectedRating,
     comments:        document.getElementById('comments').value.trim(),
     items_purchased: getSelectedItems(),

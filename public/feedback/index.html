@@ -32,23 +32,19 @@
       <!-- Hidden: machine ID -->
       <input type="hidden" id="machineId" name="machine_id" />
 
-      <!-- Location (auto-filled, read-only) -->
+      <!-- Location -->
       <div class="field">
         <label class="field__label" for="location">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          Location
+          Location <span class="required">*</span>
         </label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          class="field__input field__input--readonly"
-          readonly
-          placeholder="Detecting location..."
-        />
+        <select id="location" name="location" class="field__input">
+          <option value="">Select a location...</option>
+        </select>
+        <span class="field__error hidden" id="locationError">Please select a location.</span>
       </div>
 
       <!-- Star Rating -->
