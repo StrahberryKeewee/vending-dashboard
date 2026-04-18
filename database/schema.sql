@@ -57,11 +57,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 -- Seed: machines
 INSERT INTO machines (machine_id, location, building, floor) VALUES
-  ('VK200078417', 'The Union at Dearborn', 'The Union', '1st Floor'),
-  ('VM002', 'Building B - 2nd Floor', 'Building B', '2nd Floor'),
-  ('VM003', 'Building C - Cafeteria', 'Building C', 'Cafeteria'),
-  ('VM004', 'Building A - 3rd Floor', 'Building A', '3rd Floor'),
-  ('VM005', 'Building D - Break Room','Building D', '1st Floor');
+  ('VK200078417', 'The Union at Dearborn', 'The Union', '1st Floor');
 
 -- Seed: products
 INSERT INTO products (sku, name, category, price) VALUES
