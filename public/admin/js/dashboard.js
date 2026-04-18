@@ -260,7 +260,7 @@ function loadMachines() {
   }
 
   const origin      = window.location.origin;
-  const feedbackBase = origin + '/public/feedback/';
+  const feedbackBase = origin + '/feedback/';
 
   tbody.innerHTML = allMachines.map(m => {
     const url = `${feedbackBase}?machine=${encodeURIComponent(m.machine_id)}&location=${encodeURIComponent(m.location)}`;
@@ -281,7 +281,7 @@ function loadMachines() {
 
 function showQrModal(machineId, location) {
   const origin       = window.location.origin;
-  const url          = `${origin}/public/feedback/?machine=${encodeURIComponent(machineId)}&location=${encodeURIComponent(location)}`;
+  const url          = `${origin}/feedback/?machine=${encodeURIComponent(machineId)}&location=${encodeURIComponent(location)}`;
   const qrApiUrl     = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
 
   document.getElementById('qrModalTitle').textContent = `QR Code — ${machineId}`;
