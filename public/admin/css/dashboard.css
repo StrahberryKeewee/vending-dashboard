@@ -58,19 +58,23 @@ body {
 }
 
 .sidebar__brand {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   margin-bottom: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .sidebar__brand img {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  max-height: 40px;
   object-fit: contain;
-  border-radius: 6px;
+  display: block;
 }
 
 .sidebar__nav {
