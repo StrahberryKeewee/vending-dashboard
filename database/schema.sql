@@ -55,6 +55,19 @@ CREATE TABLE IF NOT EXISTS feedback (
     INDEX idx_rating       (rating)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS machine_columns (
+    id           INT          NOT NULL AUTO_INCREMENT,
+    machine_id   VARCHAR(50)  NOT NULL,
+    column_num   VARCHAR(10)  NOT NULL,
+    product_sku  VARCHAR(50)  NOT NULL,
+    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_machine_col (machine_id, column_num),
+    FOREIGN KEY (machine_id)  REFERENCES machines(machine_id)  ON DELETE CASCADE,
+    FOREIGN KEY (product_sku) REFERENCES products(sku)         ON DELETE CASCADE,
+    INDEX idx_machine_id (machine_id)
+) ENGINE=InnoDB;
+
 -- Seed: machines
 INSERT INTO machines (machine_id, location, building, floor) VALUES
   ('VK200078417', 'The Union at Dearborn', 'The Union', '1st Floor');

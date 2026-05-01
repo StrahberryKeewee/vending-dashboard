@@ -224,6 +224,8 @@
 
     <!-- Machines Section -->
     <section class="section hidden" id="section-machines">
+
+      <!-- Machines list -->
       <div class="card">
         <div class="card__header">
           <div class="card__title">
@@ -235,6 +237,7 @@
             </svg>
             Machine Locations
           </div>
+          <span class="card__hint">Select a machine to manage its column mapping</span>
         </div>
         <div class="table-container">
           <table class="feedback-table" id="machinesTable">
@@ -254,6 +257,69 @@
           </table>
         </div>
       </div>
+
+      <!-- Machine detail panel (shown when a machine is selected) -->
+      <div class="card hidden" id="machineDetail">
+        <div class="card__header">
+          <div class="card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+            </svg>
+            <span id="detailMachineTitle">Machine Detail</span>
+          </div>
+          <button class="btn-refresh" id="closeDetail" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Column mapping -->
+        <div class="detail-section">
+          <div class="detail-section__header">
+            <span class="detail-section__title">Column → Product Mapping</span>
+            <span class="detail-section__hint">Map each slot number to a product so sales data can be tracked by item</span>
+          </div>
+          <div class="table-container">
+            <table class="feedback-table" id="columnsTable">
+              <thead>
+                <tr>
+                  <th>Column #</th>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="columnsBody">
+                <tr class="table-loading"><td colspan="5">Select a machine above</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Add mapping row -->
+          <div class="mapping-add-row">
+            <input type="text" class="mapping-input" id="newColumnNum" placeholder="Column #" maxlength="10" />
+            <select class="mapping-select" id="newProductSku">
+              <option value="">Select product...</option>
+            </select>
+            <button class="btn-add-mapping" id="addMappingBtn">Add</button>
+          </div>
+        </div>
+
+        <!-- Sales breakdown placeholder -->
+        <div class="detail-section detail-section--muted">
+          <div class="detail-section__header">
+            <span class="detail-section__title">Sales Breakdown</span>
+            <span class="detail-section__hint">Available once column mapping is complete and new transaction data is flowing</span>
+          </div>
+          <div class="placeholder-block">Top sellers, peak hours, and day-of-week breakdown will appear here</div>
+        </div>
+
+      </div>
+
     </section>
 
   </main>

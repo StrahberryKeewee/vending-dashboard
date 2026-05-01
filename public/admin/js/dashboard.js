@@ -283,6 +283,26 @@ async function loadFeedback() {
 }
 
 
+const PRODUCTS = [
+  { sku: 'BEV-001', name: 'Coca Cola',    category: 'Beverages' },
+  { sku: 'BEV-002', name: 'Pepsi',        category: 'Beverages' },
+  { sku: 'BEV-003', name: 'Sprite',       category: 'Beverages' },
+  { sku: 'BEV-004', name: 'Water',        category: 'Beverages' },
+  { sku: 'BEV-005', name: 'Orange Juice', category: 'Beverages' },
+  { sku: 'SNK-001', name: 'Chips',        category: 'Snacks' },
+  { sku: 'SNK-002', name: 'Pretzels',     category: 'Snacks' },
+  { sku: 'SNK-003', name: 'Crackers',     category: 'Snacks' },
+  { sku: 'SNK-004', name: 'Popcorn',      category: 'Snacks' },
+  { sku: 'CND-001', name: 'Snickers Bar', category: 'Candy' },
+  { sku: 'CND-002', name: 'M&Ms',         category: 'Candy' },
+  { sku: 'CND-003', name: 'Kit Kat',      category: 'Candy' },
+  { sku: 'HLT-001', name: 'Granola Bar',  category: 'Healthy' },
+  { sku: 'HLT-002', name: 'Trail Mix',    category: 'Healthy' },
+  { sku: 'HLT-003', name: 'Fruit Cup',    category: 'Healthy' },
+];
+
+let selectedMachineId = '';
+
 function loadMachines() {
   const tbody = document.getElementById('machinesBody');
 
@@ -295,19 +315,129 @@ function loadMachines() {
 
   tbody.innerHTML = allMachines.map(m => {
     const url = `${feedbackBase}?machine=${encodeURIComponent(m.machine_id)}&location=${encodeURIComponent(m.location)}`;
-    return `<tr>
+    return `<tr class="machine-row" data-machine-id="${escHtml(m.machine_id)}" data-location="${escHtml(m.location)}">
       <td><strong>${escHtml(m.machine_id)}</strong></td>
       <td>${escHtml(m.location)}</td>
       <td>${escHtml(m.building ?? '')}</td>
       <td>${escHtml(m.floor ?? '')}</td>
       <td><a class="qr-link" href="${url}" target="_blank">${url}</a></td>
       <td>
-        <button class="btn-qr" onclick="showQrModal('${escHtml(m.machine_id)}', '${escHtml(m.location)}')">
+        <button class="btn-qr" onclick="event.stopPropagation();showQrModal('${escHtml(m.machine_id)}', '${escHtml(m.location)}')">
           Show QR
         </button>
       </td>
     </tr>`;
   }).join('');
+
+  document.querySelectorAll('.machine-row').forEach(row => {
+    row.addEventListener('click', () => openMachineDetail(row.dataset.machineId, row.dataset.location));
+  });
+}
+
+function populateProductSelect() {
+  const sel = document.getElementById('newProductSku');
+  if (sel.options.length > 1) return;
+  PRODUCTS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value       = p.sku;
+    opt.textContent = `${p.name} (${p.sku})`;
+    sel.appendChild(opt);
+  });
+}
+
+async function openMachineDetail(machineId, location) {
+  selectedMachineId = machineId;
+
+  document.querySelectorAll('.machine-row').forEach(r => r.classList.toggle('selected', r.dataset.machineId === machineId));
+
+  const panel = document.getElementById('machineDetail');
+  panel.classList.remove('hidden');
+  document.getElementById('detailMachineTitle').textContent = `${machineId} — ${location}`;
+
+  populateProductSelect();
+  await loadColumnMappings(machineId);
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadColumnMappings(machineId) {
+  const tbody = document.getElementById('columnsBody');
+  tbody.innerHTML = '<tr class="table-loading"><td colspan="5">Loading...</td></tr>';
+
+  let data;
+  try {
+    data = await apiFetch(`/machines/columns.php?machine_id=${encodeURIComponent(machineId)}`);
+  } catch {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="5">Failed to load.</td></tr>';
+    return;
+  }
+
+  const cols = data.columns ?? [];
+  if (!cols.length) {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="5">No mappings yet. Add one below.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = cols.map(c => `
+    <tr>
+      <td><strong>${escHtml(c.column_num)}</strong></td>
+      <td>${escHtml(c.product_name)}</td>
+      <td><span class="item-tag">${escHtml(c.product_sku)}</span></td>
+      <td>${escHtml(c.category ?? '')}</td>
+      <td>
+        <button class="btn-delete" onclick="deleteColumnMapping(${c.id})" title="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function addColumnMapping() {
+  const colNum = document.getElementById('newColumnNum').value.trim();
+  const sku    = document.getElementById('newProductSku').value;
+  const btn    = document.getElementById('addMappingBtn');
+
+  if (!colNum || !sku || !selectedMachineId) return;
+
+  btn.disabled = true;
+  try {
+    await fetch(`${API_BASE}/machines/columns.php`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ machine_id: selectedMachineId, column_num: colNum, product_sku: sku }),
+    });
+    document.getElementById('newColumnNum').value = '';
+    document.getElementById('newProductSku').value = '';
+    await loadColumnMappings(selectedMachineId);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteColumnMapping(id) {
+  try {
+    await fetch(`${API_BASE}/machines/columns.php?id=${id}`, { method: 'DELETE' });
+    await loadColumnMappings(selectedMachineId);
+  } catch {}
+}
+
+function initMachineDetail() {
+  document.getElementById('closeDetail').addEventListener('click', () => {
+    document.getElementById('machineDetail').classList.add('hidden');
+    document.querySelectorAll('.machine-row').forEach(r => r.classList.remove('selected'));
+    selectedMachineId = '';
+  });
+
+  document.getElementById('addMappingBtn').addEventListener('click', addColumnMapping);
+
+  document.getElementById('newColumnNum').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addColumnMapping();
+  });
 }
 
 function showQrModal(machineId, location) {
@@ -395,6 +525,7 @@ async function init() {
   initNav();
   initPeriodToggle();
   initQrModal();
+  initMachineDetail();
   await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 

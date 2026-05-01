@@ -663,6 +663,115 @@ body {
 
 .toast.show { opacity: 1; transform: translateY(0); }
 
+/* Card hint text */
+.card__hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+/* Machine row — clickable */
+.machine-row {
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.machine-row:hover { background: #f9fafb; }
+
+.machine-row.selected { background: var(--accent-light); }
+
+/* Machine detail panel sections */
+.detail-section {
+  padding: 20px 22px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-section--muted {
+  background: #fafafa;
+}
+
+.detail-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.detail-section__title {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.detail-section__hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+/* Add mapping row */
+.mapping-add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 4px;
+  flex-wrap: wrap;
+}
+
+.mapping-input {
+  width: 90px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .82rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.mapping-input:focus { border-color: var(--accent); }
+
+.mapping-select {
+  flex: 1;
+  min-width: 160px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: .82rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .15s;
+}
+
+.mapping-select:focus { border-color: var(--accent); }
+
+.btn-add-mapping {
+  padding: 7px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+
+.btn-add-mapping:hover { opacity: .88; }
+.btn-add-mapping:disabled { opacity: .5; cursor: default; }
+
+/* Placeholder block */
+.placeholder-block {
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
 /* ── Mobile ────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
 
