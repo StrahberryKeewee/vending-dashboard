@@ -32,9 +32,22 @@ $ratingStmt = $pdo->prepare(
 $ratingStmt->execute($mParam);
 $ratingRow = $ratingStmt->fetch();
 
+$topCatStmt = $pdo->prepare(
+    'SELECT p.category, COUNT(*) AS cnt
+     FROM   sales s
+     JOIN   products p ON p.id = s.product_id
+     WHERE  YEAR(s.sale_time) = YEAR(NOW())' . $mFilter . '
+     GROUP BY p.category
+     ORDER BY cnt DESC
+     LIMIT 1'
+);
+$topCatStmt->execute($mParam);
+$topCatRow = $topCatStmt->fetch();
+
 jsonResponse([
     'total_transactions' => (int)   $salesRow['total_transactions'],
     'avg_sale'           => round((float) $salesRow['avg_sale'], 2),
     'avg_rating'         => round((float) $ratingRow['avg_rating'], 1),
     'total_reviews'      => (int)   $ratingRow['total_reviews'],
+    'top_category'       => $topCatRow ? $topCatRow['category'] : null,
 ]);

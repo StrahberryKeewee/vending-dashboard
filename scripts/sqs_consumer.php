@@ -35,8 +35,8 @@ if ($queueUrl === '') {
 $pdo = Database::connect();
 
 $insertSale = $pdo->prepare(
-    'INSERT INTO sales (machine_id, product_id, quantity, amount, sale_time, sqs_message_id)
-     VALUES (:machine_id, :product_id, :quantity, :amount, :sale_time, :sqs_message_id)
+    'INSERT INTO sales (machine_id, product_id, vend_column, quantity, amount, sale_time, sqs_message_id)
+     VALUES (:machine_id, :product_id, :vend_column, :quantity, :amount, :sale_time, :sqs_message_id)
      ON DUPLICATE KEY UPDATE ingested_at = ingested_at'
 );
 
@@ -106,6 +106,7 @@ foreach ($messages as $message) {
     $insertSale->execute([
         ':machine_id'      => $machineId,
         ':product_id'      => $productId,
+        ':vend_column'     => $colNum ?? null,
         ':quantity'        => $quantity,
         ':amount'          => $amount,
         ':sale_time'       => $saleTime,

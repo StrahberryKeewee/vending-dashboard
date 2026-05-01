@@ -121,7 +121,7 @@ async function loadAnalyticsStats() {
 
   if (transactions) transactions.textContent = data.total_transactions;
   if (avgSale)      avgSale.textContent      = formatCurrency(data.avg_sale);
-  if (topCat)       topCat.textContent       = '--';
+  if (topCat)       topCat.textContent       = data.top_category ?? '--';
   if (avgRating)    avgRating.textContent    = data.avg_rating > 0 ? data.avg_rating + ' / 5' : '--';
 }
 
