@@ -53,10 +53,10 @@ $catStmt->execute(array_merge([':year' => $year], $machineParams));
 $catRows = $catStmt->fetchAll();
 
 $categoryMap = [
-    'beverages' => ['label' => 'Beverages',      'color' => '#22c55e'],
-    'snacks'    => ['label' => 'Snacks',          'color' => '#3b82f6'],
-    'candy'     => ['label' => 'Candy',           'color' => '#f59e0b'],
-    'healthy'   => ['label' => 'Healthy Options', 'color' => '#ef4444'],
+    'Beverage'        => ['label' => 'Beverages',       'color' => '#22c55e'],
+    'Snack'           => ['label' => 'Snacks',           'color' => '#3b82f6'],
+    'Health Products' => ['label' => 'Health Products',  'color' => '#ef4444'],
+    'School Supplies' => ['label' => 'School Supplies',  'color' => '#f59e0b'],
 ];
 
 $categories = [];

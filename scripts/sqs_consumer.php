@@ -43,9 +43,8 @@ $insertSale = $pdo->prepare(
 $lookupProduct = $pdo->prepare('SELECT id FROM products WHERE sku = :sku LIMIT 1');
 
 $lookupColumn = $pdo->prepare(
-    'SELECT p.id FROM machine_columns mc
-     JOIN products p ON p.sku = mc.product_sku
-     WHERE mc.machine_id = :machine_id AND mc.column_num = :column_num
+    'SELECT product_id FROM machine_columns
+     WHERE machine_id = :machine_id AND column_num = :column_num
      LIMIT 1'
 );
 
@@ -98,7 +97,8 @@ foreach ($messages as $message) {
     if ($vendCol !== '') {
         $colNum = ltrim(explode('(', $vendCol)[0], '0') ?: '0';
         $lookupColumn->execute([':machine_id' => $machineId, ':column_num' => $colNum]);
-        $productId = $lookupColumn->fetchColumn() ?: null;
+        $row       = $lookupColumn->fetch();
+        $productId = ($row && $row['product_id']) ? (int) $row['product_id'] : null;
     }
 
     $saleTime = (new DateTime($timestamp))->format('Y-m-d H:i:s');
