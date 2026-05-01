@@ -156,6 +156,39 @@
 
     <!-- Analytics Section -->
     <section class="section hidden" id="section-analytics">
+
+      <!-- Most Recent Sale -->
+      <div class="card">
+        <div class="card__header">
+          <div class="card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Most Recent Sale
+          </div>
+        </div>
+        <div class="stats-grid" id="latestGrid">
+          <div class="stat-card">
+            <span class="stat-card__label">Item Purchased</span>
+            <span class="stat-card__value" id="latestItem">--</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Purchase Time</span>
+            <span class="stat-card__value stat-card__value--sm" id="latestTime">--</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Sale Amount</span>
+            <span class="stat-card__value" id="latestAmount">--</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Machine Location</span>
+            <span class="stat-card__value stat-card__value--sm" id="latestLocation">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Analytics -->
       <div class="card">
         <div class="card__header">
           <div class="card__title">
@@ -186,6 +219,7 @@
           </div>
         </div>
       </div>
+
     </section>
 
     <!-- Machines Section -->

@@ -125,6 +125,41 @@ async function loadAnalyticsStats() {
   if (avgRating)    avgRating.textContent    = data.avg_rating > 0 ? data.avg_rating + ' / 5' : '--';
 }
 
+async function loadLatestSale() {
+  let data;
+  try {
+    data = await apiFetch('/sales/latest.php');
+  } catch {
+    return;
+  }
+
+  const sale = data.sale;
+
+  const itemEl     = document.getElementById('latestItem');
+  const timeEl     = document.getElementById('latestTime');
+  const amountEl   = document.getElementById('latestAmount');
+  const locationEl = document.getElementById('latestLocation');
+
+  if (!sale) {
+    if (itemEl)     itemEl.textContent     = '--';
+    if (timeEl)     timeEl.textContent     = '--';
+    if (amountEl)   amountEl.textContent   = '--';
+    if (locationEl) locationEl.textContent = '--';
+    return;
+  }
+
+  if (itemEl)     itemEl.textContent     = sale.product_name ?? '--';
+  if (amountEl)   amountEl.textContent   = formatCurrency(sale.amount);
+  if (locationEl) locationEl.textContent = sale.location ?? '--';
+
+  if (timeEl && sale.sale_time) {
+    const d = new Date(sale.sale_time);
+    const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    timeEl.innerHTML = `${date}<br><span style="font-weight:400;color:var(--text-secondary)">${time}</span>`;
+  }
+}
+
 async function loadTrend(period) {
   let data;
   try {
@@ -361,7 +396,7 @@ async function init() {
   initPeriodToggle();
   initQrModal();
   await loadMachinesFromApi();
-  await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats()]);
+  await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 
   setInterval(() => {
     loadFeedback();
