@@ -180,7 +180,7 @@ body {
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow: clip;
 }
 
 .card__header {
@@ -802,5 +802,23 @@ body {
   .qr-modal__box {
     margin: 0 16px;
     max-width: 100%;
+  }
+
+  /* Feedback table — hide Item Purchased and Suggestions columns */
+  #feedbackTable th:nth-child(4),
+  #feedbackTable td:nth-child(4),
+  #feedbackTable th:nth-child(5),
+  #feedbackTable td:nth-child(5) {
+    display: none;
+  }
+
+  /* Machines table — hide Building, Floor, and QR URL columns */
+  #machinesTable th:nth-child(3),
+  #machinesTable td:nth-child(3),
+  #machinesTable th:nth-child(4),
+  #machinesTable td:nth-child(4),
+  #machinesTable th:nth-child(5),
+  #machinesTable td:nth-child(5) {
+    display: none;
   }
 }
