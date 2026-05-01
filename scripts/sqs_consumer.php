@@ -1,21 +1,5 @@
 <?php
 
-/**
- * SQS Consumer — run as a cron job or daemon on the EC2 instance.
- *
- * Cron example (every 5 minutes):
- *   /5 * * * * /usr/bin/php /var/www/html/scripts/sqs_consumer.php >> /var/log/vending_sqs.log 2>&1
- *
- * Expected SQS message body (JSON):
- * {
- *   "machine_id": "VM001",
- *   "product_sku": "BEV-001",
- *   "quantity": 1,
- *   "amount": 1.75,
- *   "timestamp": "2026-04-17T10:30:00Z"
- * }
- */
-
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../api/config/Database.php';
 require_once __DIR__ . '/../api/config/AwsConfig.php';
@@ -58,6 +42,13 @@ $insertSale = $pdo->prepare(
 
 $lookupProduct = $pdo->prepare('SELECT id FROM products WHERE sku = :sku LIMIT 1');
 
+$lookupColumn = $pdo->prepare(
+    'SELECT p.id FROM machine_columns mc
+     JOIN products p ON p.sku = mc.product_sku
+     WHERE mc.machine_id = :machine_id AND mc.column_num = :column_num
+     LIMIT 1'
+);
+
 $processed = 0;
 
 try {
@@ -86,16 +77,14 @@ foreach ($messages as $message) {
         continue;
     }
 
-    // SeedLive wraps transactions in an array
     if (isset($payload[0])) {
         $payload = $payload[0];
     }
 
-    $machineId  = trim($payload['EportID']         ?? $payload['machine_id']  ?? '');
-    $productSku = trim($payload['product_sku']    ?? '');
-    $quantity   = (int) ($payload['ProductCount'] ?? $payload['quantity']  ?? 1);
-    $amount     = (float) ($payload['Amount']     ?? $payload['amount']    ?? 0.0);
-    $timestamp  = $payload['TransactionTime']     ?? $payload['timestamp'] ?? date('c');
+    $machineId = trim($payload['EportID']      ?? $payload['machine_id'] ?? '');
+    $quantity  = (int) ($payload['ProductCount'] ?? $payload['quantity']  ?? 1);
+    $amount    = (float) ($payload['Amount']     ?? $payload['amount']    ?? 0.0);
+    $timestamp = $payload['TransactionTime']     ?? $payload['timestamp'] ?? date('c');
 
     if ($machineId === '' || $amount <= 0) {
         echo "[WARN] Incomplete payload in message {$messageId}, skipping" . PHP_EOL;
@@ -103,10 +92,13 @@ foreach ($messages as $message) {
         continue;
     }
 
+    // Parse column number from "Vend Column" field e.g. "0004($7.50)" → "4"
     $productId = null;
-    if ($productSku !== '') {
-        $lookupProduct->execute([':sku' => $productSku]);
-        $productId = $lookupProduct->fetchColumn() ?: null;
+    $vendCol   = trim($payload['Vend Column'] ?? $payload['product_sku'] ?? '');
+    if ($vendCol !== '') {
+        $colNum = ltrim(explode('(', $vendCol)[0], '0') ?: '0';
+        $lookupColumn->execute([':machine_id' => $machineId, ':column_num' => $colNum]);
+        $productId = $lookupColumn->fetchColumn() ?: null;
     }
 
     $saleTime = (new DateTime($timestamp))->format('Y-m-d H:i:s');

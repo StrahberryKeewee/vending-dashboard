@@ -1,12 +1,5 @@
 <?php
 
-/**
- * One-time import script for SeedLive JSON activity exports.
- *
- * Usage:
- *   php scripts/import_json.php /path/to/activity.json
- */
-
 require_once __DIR__ . '/../api/config/Database.php';
 
 $dotenv = __DIR__ . '/../.env';
