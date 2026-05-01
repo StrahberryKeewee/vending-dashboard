@@ -15,36 +15,38 @@ if ($method === 'GET') {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT mc.id, mc.column_num, mc.product_sku, p.name AS product_name, p.category
-         FROM   machine_columns mc
-         JOIN   products p ON p.sku = mc.product_sku
-         WHERE  mc.machine_id = :machine_id
-         ORDER BY CAST(mc.column_num AS UNSIGNED), mc.column_num'
+        'SELECT id, column_num, product_name, category
+         FROM   machine_columns
+         WHERE  machine_id = :machine_id
+         ORDER BY CAST(column_num AS UNSIGNED), column_num'
     );
     $stmt->execute([':machine_id' => $machineId]);
     jsonResponse(['columns' => $stmt->fetchAll()]);
 }
 
 if ($method === 'POST') {
-    $body      = json_decode(file_get_contents('php://input'), true) ?? [];
-    $machineId = trim($body['machine_id'] ?? '');
-    $columnNum = trim($body['column_num']  ?? '');
-    $sku       = trim($body['product_sku'] ?? '');
+    $body         = json_decode(file_get_contents('php://input'), true) ?? [];
+    $machineId    = trim($body['machine_id']    ?? '');
+    $columnNum    = trim($body['column_num']    ?? '');
+    $productName  = trim($body['product_name']  ?? '');
+    $category     = trim($body['category']      ?? '');
 
-    if ($machineId === '' || $columnNum === '' || $sku === '') {
-        jsonError('machine_id, column_num, and product_sku are required', 400);
+    if ($machineId === '' || $columnNum === '' || $productName === '' || $category === '') {
+        jsonError('machine_id, column_num, product_name, and category are required', 400);
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO machine_columns (machine_id, column_num, product_sku)
-         VALUES (:machine_id, :column_num, :sku)
-         ON DUPLICATE KEY UPDATE product_sku = :sku2'
+        'INSERT INTO machine_columns (machine_id, column_num, product_name, category)
+         VALUES (:machine_id, :column_num, :product_name, :category)
+         ON DUPLICATE KEY UPDATE product_name = :product_name2, category = :category2'
     );
     $stmt->execute([
-        ':machine_id' => $machineId,
-        ':column_num' => $columnNum,
-        ':sku'        => $sku,
-        ':sku2'       => $sku,
+        ':machine_id'    => $machineId,
+        ':column_num'    => $columnNum,
+        ':product_name'  => $productName,
+        ':category'      => $category,
+        ':product_name2' => $productName,
+        ':category2'     => $category,
     ]);
 
     jsonResponse(['success' => true]);

@@ -287,23 +287,23 @@
               <thead>
                 <tr>
                   <th>Column #</th>
-                  <th>Product</th>
-                  <th>SKU</th>
+                  <th>Item Name</th>
                   <th>Category</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody id="columnsBody">
-                <tr class="table-loading"><td colspan="5">Select a machine above</td></tr>
+                <tr class="table-loading"><td colspan="4">Select a machine above</td></tr>
               </tbody>
             </table>
           </div>
 
           <!-- Add mapping row -->
           <div class="mapping-add-row">
-            <input type="text" class="mapping-input" id="newColumnNum" placeholder="Column #" maxlength="10" />
-            <select class="mapping-select" id="newProductSku">
-              <option value="">Select product...</option>
+            <input type="text" class="mapping-input" id="newColumnNum" placeholder="Col #" maxlength="10" />
+            <input type="text" class="mapping-input mapping-input--name" id="newProductName" placeholder="Item name" maxlength="100" />
+            <select class="mapping-select mapping-select--cat" id="newCategory">
+              <option value="">Category...</option>
             </select>
             <button class="btn-add-mapping" id="addMappingBtn">Add</button>
           </div>

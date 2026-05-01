@@ -283,23 +283,7 @@ async function loadFeedback() {
 }
 
 
-const PRODUCTS = [
-  { sku: 'BEV-001', name: 'Coca Cola',    category: 'Beverages' },
-  { sku: 'BEV-002', name: 'Pepsi',        category: 'Beverages' },
-  { sku: 'BEV-003', name: 'Sprite',       category: 'Beverages' },
-  { sku: 'BEV-004', name: 'Water',        category: 'Beverages' },
-  { sku: 'BEV-005', name: 'Orange Juice', category: 'Beverages' },
-  { sku: 'SNK-001', name: 'Chips',        category: 'Snacks' },
-  { sku: 'SNK-002', name: 'Pretzels',     category: 'Snacks' },
-  { sku: 'SNK-003', name: 'Crackers',     category: 'Snacks' },
-  { sku: 'SNK-004', name: 'Popcorn',      category: 'Snacks' },
-  { sku: 'CND-001', name: 'Snickers Bar', category: 'Candy' },
-  { sku: 'CND-002', name: 'M&Ms',         category: 'Candy' },
-  { sku: 'CND-003', name: 'Kit Kat',      category: 'Candy' },
-  { sku: 'HLT-001', name: 'Granola Bar',  category: 'Healthy' },
-  { sku: 'HLT-002', name: 'Trail Mix',    category: 'Healthy' },
-  { sku: 'HLT-003', name: 'Fruit Cup',    category: 'Healthy' },
-];
+const CATEGORIES = ['Snack', 'Beverage', 'Health Products', 'School Supplies'];
 
 let selectedMachineId = '';
 
@@ -334,13 +318,13 @@ function loadMachines() {
   });
 }
 
-function populateProductSelect() {
-  const sel = document.getElementById('newProductSku');
+function populateCategorySelect() {
+  const sel = document.getElementById('newCategory');
   if (sel.options.length > 1) return;
-  PRODUCTS.forEach(p => {
+  CATEGORIES.forEach(cat => {
     const opt = document.createElement('option');
-    opt.value       = p.sku;
-    opt.textContent = `${p.name} (${p.sku})`;
+    opt.value       = cat;
+    opt.textContent = cat;
     sel.appendChild(opt);
   });
 }
@@ -354,7 +338,7 @@ async function openMachineDetail(machineId, location) {
   panel.classList.remove('hidden');
   document.getElementById('detailMachineTitle').textContent = `${machineId} — ${location}`;
 
-  populateProductSelect();
+  populateCategorySelect();
   await loadColumnMappings(machineId);
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -382,8 +366,7 @@ async function loadColumnMappings(machineId) {
     <tr>
       <td><strong>${escHtml(c.column_num)}</strong></td>
       <td>${escHtml(c.product_name)}</td>
-      <td><span class="item-tag">${escHtml(c.product_sku)}</span></td>
-      <td>${escHtml(c.category ?? '')}</td>
+      <td><span class="item-tag">${escHtml(c.category ?? '')}</span></td>
       <td>
         <button class="btn-delete" onclick="deleteColumnMapping(${c.id})" title="Remove">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -398,21 +381,23 @@ async function loadColumnMappings(machineId) {
 }
 
 async function addColumnMapping() {
-  const colNum = document.getElementById('newColumnNum').value.trim();
-  const sku    = document.getElementById('newProductSku').value;
-  const btn    = document.getElementById('addMappingBtn');
+  const colNum      = document.getElementById('newColumnNum').value.trim();
+  const productName = document.getElementById('newProductName').value.trim();
+  const category    = document.getElementById('newCategory').value;
+  const btn         = document.getElementById('addMappingBtn');
 
-  if (!colNum || !sku || !selectedMachineId) return;
+  if (!colNum || !productName || !category || !selectedMachineId) return;
 
   btn.disabled = true;
   try {
     await fetch(`${API_BASE}/machines/columns.php`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ machine_id: selectedMachineId, column_num: colNum, product_sku: sku }),
+      body:    JSON.stringify({ machine_id: selectedMachineId, column_num: colNum, product_name: productName, category }),
     });
-    document.getElementById('newColumnNum').value = '';
-    document.getElementById('newProductSku').value = '';
+    document.getElementById('newColumnNum').value   = '';
+    document.getElementById('newProductName').value = '';
+    document.getElementById('newCategory').value    = '';
     await loadColumnMappings(selectedMachineId);
   } finally {
     btn.disabled = false;
@@ -435,9 +420,8 @@ function initMachineDetail() {
 
   document.getElementById('addMappingBtn').addEventListener('click', addColumnMapping);
 
-  document.getElementById('newColumnNum').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addColumnMapping();
-  });
+  document.getElementById('newColumnNum').addEventListener('keydown',   e => { if (e.key === 'Enter') addColumnMapping(); });
+  document.getElementById('newProductName').addEventListener('keydown', e => { if (e.key === 'Enter') addColumnMapping(); });
 }
 
 function showQrModal(machineId, location) {

@@ -730,6 +730,12 @@ body {
 
 .mapping-input:focus { border-color: var(--accent); }
 
+.mapping-input--name {
+  flex: 1;
+  min-width: 120px;
+  width: auto;
+}
+
 .mapping-select {
   flex: 1;
   min-width: 160px;
