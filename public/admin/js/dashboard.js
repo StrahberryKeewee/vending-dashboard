@@ -339,9 +339,57 @@ async function openMachineDetail(machineId, location) {
   document.getElementById('detailMachineTitle').textContent = `${machineId} — ${location}`;
 
   populateCategorySelect();
-  await loadColumnMappings(machineId);
+  await Promise.all([loadColumnMappings(machineId), loadRecentSales(machineId)]);
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadRecentSales(machineId) {
+  const tbody = document.getElementById('recentSalesBody');
+  tbody.innerHTML = '<tr class="table-loading"><td colspan="5">Loading...</td></tr>';
+
+  let data;
+  try {
+    data = await apiFetch(`/sales/recent.php?machine_id=${encodeURIComponent(machineId)}`);
+  } catch {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="5">Failed to load.</td></tr>';
+    return;
+  }
+
+  const sales = data.sales ?? [];
+  if (!sales.length) {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="5">No sales yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sales.map(s => {
+    const d    = new Date(s.sale_time);
+    const time = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+               + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return `<tr>
+      <td style="white-space:nowrap">${escHtml(time)}</td>
+      <td>${s.vend_column ? escHtml(s.vend_column) : '<span style="color:var(--text-muted)">--</span>'}</td>
+      <td>${s.product_name ? escHtml(s.product_name) : '<span style="color:var(--text-muted)">--</span>'}</td>
+      <td>${formatCurrency(s.amount)}</td>
+      <td>
+        <button class="btn-delete" onclick="deleteSale(${s.id})" title="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteSale(id) {
+  if (!confirm('Delete this sale record? This cannot be undone.')) return;
+  try {
+    await fetch(`${API_BASE}/sales/delete.php?id=${id}`, { method: 'DELETE' });
+    await loadRecentSales(selectedMachineId);
+  } catch {}
 }
 
 async function loadColumnMappings(machineId) {
