@@ -33,12 +33,20 @@ $lookupColumn = $pdo->prepare(
      LIMIT 1'
 );
 
-$insert = $pdo->prepare(
-    'INSERT INTO sales (machine_id, product_id, vend_column, quantity, amount, sale_time, sqs_message_id)
-     VALUES (:machine_id, :product_id, :vend_column, :quantity, :amount, :sale_time, :msg_id)
-     ON DUPLICATE KEY UPDATE
-       product_id  = IF(product_id IS NULL AND VALUES(product_id) IS NOT NULL, VALUES(product_id), product_id),
-       vend_column = IF(vend_column IS NULL, VALUES(vend_column), vend_column)'
+// Try to enrich an existing record first (matched by machine + timestamp)
+$updateExisting = $pdo->prepare(
+    'UPDATE sales
+     SET product_id  = COALESCE(product_id, :product_id),
+         vend_column = COALESCE(vend_column, :vend_column)
+     WHERE machine_id = :machine_id
+       AND sale_time  = :sale_time
+     LIMIT 1'
+);
+
+// Only insert if no existing record matched
+$insertNew = $pdo->prepare(
+    'INSERT IGNORE INTO sales (machine_id, product_id, vend_column, quantity, amount, sale_time, sqs_message_id)
+     VALUES (:machine_id, :product_id, :vend_column, :quantity, :amount, :sale_time, :msg_id)'
 );
 
 $imported = 0;
@@ -129,21 +137,34 @@ foreach ($files as $file) {
             $productId = ($result && $result['product_id']) ? (int) $result['product_id'] : null;
         }
 
-        $msgId = 'html-' . ($refNbr !== '' ? $refNbr : md5($machineId . $saleTime . $amount . $vendRaw));
-
-        $insert->execute([
-            ':machine_id' => $machineId,
-            ':product_id' => $productId,
+        // Try to update an existing record matched by machine + timestamp
+        $updateExisting->execute([
+            ':product_id'  => $productId,
             ':vend_column' => $colNum,
-            ':quantity'   => $quantity,
-            ':amount'     => $amount,
-            ':sale_time'  => $saleTime,
-            ':msg_id'     => $msgId,
+            ':machine_id'  => $machineId,
+            ':sale_time'   => $saleTime,
         ]);
 
-        $imported++;
-        $label = $productId ? "product_id={$productId}" : 'unmapped';
-        echo "  [OK] col {$colNum} | \${$amount} | {$saleTime} | {$label}" . PHP_EOL;
+        if ($updateExisting->rowCount() > 0) {
+            $imported++;
+            $label = $productId ? "product_id={$productId}" : 'unmapped';
+            echo "  [UPDATED] col {$colNum} | \${$amount} | {$saleTime} | {$label}" . PHP_EOL;
+        } else {
+            // No existing record — insert as new
+            $msgId = 'html-' . ($refNbr !== '' ? $refNbr : md5($machineId . $saleTime . $amount . $vendRaw));
+            $insertNew->execute([
+                ':machine_id'  => $machineId,
+                ':product_id'  => $productId,
+                ':vend_column' => $colNum,
+                ':quantity'    => $quantity,
+                ':amount'      => $amount,
+                ':sale_time'   => $saleTime,
+                ':msg_id'      => $msgId,
+            ]);
+            $imported++;
+            $label = $productId ? "product_id={$productId}" : 'unmapped';
+            echo "  [NEW] col {$colNum} | \${$amount} | {$saleTime} | {$label}" . PHP_EOL;
+        }
     }
 }
 
