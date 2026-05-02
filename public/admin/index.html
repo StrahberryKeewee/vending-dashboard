@@ -277,35 +277,44 @@
         </div>
 
         <!-- Column mapping -->
-        <div class="detail-section">
-          <div class="detail-section__header">
-            <span class="detail-section__title">Column → Product Mapping</span>
-            <span class="detail-section__hint">Map each slot number to a product so sales data can be tracked by item</span>
+        <div class="detail-section" id="columnMappingSection">
+          <div class="detail-section__header detail-section__header--toggle" id="columnMappingToggle">
+            <div class="detail-section__header-text">
+              <span class="detail-section__title">Column → Product Mapping</span>
+              <span class="detail-section__hint">Map each slot number to a product so sales data can be tracked by item</span>
+            </div>
+            <button class="btn-collapse" id="columnMappingBtn" aria-expanded="false" title="Expand">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
           </div>
-          <div class="table-container">
-            <table class="feedback-table" id="columnsTable">
-              <thead>
-                <tr>
-                  <th>Column #</th>
-                  <th>Item Name</th>
-                  <th>Category</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="columnsBody">
-                <tr class="table-loading"><td colspan="4">Select a machine above</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <div class="detail-section__body collapsed" id="columnMappingBody">
+            <div class="table-container">
+              <table class="feedback-table" id="columnsTable">
+                <thead>
+                  <tr>
+                    <th>Column #</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="columnsBody">
+                  <tr class="table-loading"><td colspan="4">Select a machine above</td></tr>
+                </tbody>
+              </table>
+            </div>
 
-          <!-- Add mapping row -->
-          <div class="mapping-add-row">
-            <input type="text" class="mapping-input" id="newColumnNum" placeholder="Col #" maxlength="10" />
-            <input type="text" class="mapping-input mapping-input--name" id="newProductName" placeholder="Item name" maxlength="100" />
-            <select class="mapping-select mapping-select--cat" id="newCategory">
-              <option value="">Category...</option>
-            </select>
-            <button class="btn-add-mapping" id="addMappingBtn">Add</button>
+            <!-- Add mapping row -->
+            <div class="mapping-add-row">
+              <input type="text" class="mapping-input" id="newColumnNum" placeholder="Col #" maxlength="10" />
+              <input type="text" class="mapping-input mapping-input--name" id="newProductName" placeholder="Item name" maxlength="100" />
+              <select class="mapping-select mapping-select--cat" id="newCategory">
+                <option value="">Category...</option>
+              </select>
+              <button class="btn-add-mapping" id="addMappingBtn">Add</button>
+            </div>
           </div>
         </div>
 

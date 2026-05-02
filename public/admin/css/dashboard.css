@@ -463,10 +463,12 @@ body {
   color: var(--text-secondary);
   display: flex;
   align-items: center;
+  justify-content: center;
+  line-height: 0;
   transition: background .15s;
 }
 
-.btn-refresh svg { width: 15px; height: 15px; }
+.btn-refresh svg { width: 15px; height: 15px; display: block; }
 .btn-refresh:hover { background: var(--bg); }
 
 /* Stats grid */
@@ -696,6 +698,22 @@ body {
   margin-bottom: 16px;
 }
 
+/* Toggleable header row */
+.detail-section__header--toggle {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 0;
+  user-select: none;
+}
+
+.detail-section__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .detail-section__title {
   font-size: .88rem;
   font-weight: 600;
@@ -705,6 +723,34 @@ body {
 .detail-section__hint {
   font-size: .75rem;
   color: var(--text-muted);
+}
+
+/* Collapse toggle button */
+.btn-collapse {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, transform .2s;
+}
+
+.btn-collapse svg { width: 16px; height: 16px; }
+.btn-collapse:hover { background: var(--bg); }
+.btn-collapse[aria-expanded="true"] { transform: rotate(180deg); }
+
+/* Collapsible body */
+.detail-section__body {
+  padding-top: 16px;
+}
+
+.detail-section__body.collapsed {
+  display: none;
 }
 
 /* Add mapping row */

@@ -54,16 +54,7 @@ async function loadSummary() {
   try {
     data = await apiFetch('/sales/summary.php?year=' + new Date().getFullYear() + machineParam());
   } catch {
-    data = {
-      total_ytd: 220800,
-      growth_percent: 18.5,
-      categories: [
-        { key: 'beverages', label: 'Beverages',      color: '#22c55e', percent: 45, revenue: 99360 },
-        { key: 'snacks',    label: 'Snacks',          color: '#3b82f6', percent: 30, revenue: 66240 },
-        { key: 'candy',     label: 'Candy',           color: '#f59e0b', percent: 15, revenue: 33120 },
-        { key: 'healthy',   label: 'Healthy Options', color: '#ef4444', percent: 10, revenue: 22080 },
-      ],
-    };
+    data = { total_ytd: 0, growth_percent: 0, categories: [] };
   }
 
   document.getElementById('ytdAmount').textContent = formatCurrency(data.total_ytd);
@@ -74,36 +65,71 @@ async function loadSummary() {
   growthEl.style.color = data.growth_percent >= 0 ? '#22c55e' : '#ef4444';
 
   const legendEl = document.getElementById('donutLegend');
-  legendEl.innerHTML = `
-    <div class="legend-item" style="grid-column:1/-1;color:var(--text-muted);font-style:italic;font-size:.78rem;">
-      Category breakdown unavailable
-    </div>`;
-
   const ctx = document.getElementById('donutChart').getContext('2d');
   if (donutChart) donutChart.destroy();
 
-  donutChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Total Sales'],
-      datasets: [{
-        data:            [data.total_ytd || 1],
-        backgroundColor: ['#2d6af4'],
-        borderWidth:     3,
-        borderColor:     '#ffffff',
-        hoverOffset:     6,
-      }],
-    },
-    options: {
-      cutout: '68%',
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: {
-          label: ctx => ` ${formatCurrency(data.total_ytd)}`,
-        },
-      }},
-      animation: { animateRotate: true, duration: 800 },
-    },
-  });
+  const cats = (data.categories ?? []).filter(c => c.revenue > 0);
+
+  if (cats.length) {
+    legendEl.innerHTML = cats.map(c => `
+      <div class="legend-item">
+        <span class="legend-dot" style="background:${c.color}"></span>
+        <span>${c.label}</span>
+        <strong>${c.percent}%</strong>
+      </div>
+    `).join('');
+
+    donutChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: cats.map(c => c.label),
+        datasets: [{
+          data:            cats.map(c => c.revenue),
+          backgroundColor: cats.map(c => c.color),
+          borderWidth:     3,
+          borderColor:     '#ffffff',
+          hoverOffset:     6,
+        }],
+      },
+      options: {
+        cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: {
+            label: c => ` ${c.label}: ${formatCurrency(c.raw)} (${cats[c.dataIndex].percent}%)`,
+          },
+        }},
+        animation: { animateRotate: true, duration: 800 },
+      },
+    });
+  } else {
+    legendEl.innerHTML = `
+      <div class="legend-item" style="grid-column:1/-1;color:var(--text-muted);font-style:italic;font-size:.78rem;">
+        Map columns to products to see category breakdown
+      </div>`;
+
+    donutChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Total Sales'],
+        datasets: [{
+          data:            [data.total_ytd || 1],
+          backgroundColor: ['#2d6af4'],
+          borderWidth:     3,
+          borderColor:     '#ffffff',
+          hoverOffset:     6,
+        }],
+      },
+      options: {
+        cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: {
+            label: () => ` ${formatCurrency(data.total_ytd)}`,
+          },
+        }},
+        animation: { animateRotate: true, duration: 800 },
+      },
+    });
+  }
 }
 
 async function loadAnalyticsStats() {
@@ -460,10 +486,30 @@ async function deleteColumnMapping(id) {
 }
 
 function initMachineDetail() {
+  // Close / X button — hide panel, deselect row, reset table contents
   document.getElementById('closeDetail').addEventListener('click', () => {
     document.getElementById('machineDetail').classList.add('hidden');
     document.querySelectorAll('.machine-row').forEach(r => r.classList.remove('selected'));
     selectedMachineId = '';
+    document.getElementById('detailMachineTitle').textContent = 'Machine Detail';
+    document.getElementById('columnsBody').innerHTML    = '<tr class="table-loading"><td colspan="4">Select a machine above</td></tr>';
+    document.getElementById('recentSalesBody').innerHTML = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
+    // Re-collapse the mapping section
+    const body = document.getElementById('columnMappingBody');
+    const btn  = document.getElementById('columnMappingBtn');
+    body.classList.add('collapsed');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.title = 'Expand';
+  });
+
+  // Column mapping collapse toggle
+  document.getElementById('columnMappingToggle').addEventListener('click', () => {
+    const body = document.getElementById('columnMappingBody');
+    const btn  = document.getElementById('columnMappingBtn');
+    const open = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', open);
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.title = open ? 'Expand' : 'Collapse';
   });
 
   document.getElementById('addMappingBtn').addEventListener('click', addColumnMapping);
