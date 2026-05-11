@@ -342,13 +342,80 @@
           </div>
         </div>
 
-        <!-- Sales breakdown placeholder -->
-        <div class="detail-section detail-section--muted">
+        <!-- Machine Analytics -->
+        <div class="detail-section" id="machineAnalyticsSection">
           <div class="detail-section__header">
-            <span class="detail-section__title">Sales Breakdown</span>
-            <span class="detail-section__hint">Available once column mapping is complete and new transaction data is flowing</span>
+            <span class="detail-section__title">Sales Analytics</span>
+            <span class="detail-section__hint">Performance breakdown for this machine</span>
           </div>
-          <div class="placeholder-block">Top sellers, peak hours, and day-of-week breakdown will appear here</div>
+
+          <!-- Period comparison cards -->
+          <div class="machine-period-grid" id="machinePeriodGrid">
+            <div class="stat-card">
+              <span class="stat-card__label">This Week</span>
+              <span class="stat-card__value stat-card__value--sm" id="mStatWeekRev">--</span>
+              <span class="stat-card__change" id="mStatWeekChange"></span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">Last Week</span>
+              <span class="stat-card__value stat-card__value--sm" id="mStatLastWeekRev">--</span>
+              <span class="stat-card__change" id="mStatWeekTxns"></span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">This Month</span>
+              <span class="stat-card__value stat-card__value--sm" id="mStatMonthRev">--</span>
+              <span class="stat-card__change" id="mStatMonthChange"></span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">Last Month</span>
+              <span class="stat-card__value stat-card__value--sm" id="mStatLastMonthRev">--</span>
+              <span class="stat-card__change" id="mStatMonthTxns"></span>
+            </div>
+          </div>
+
+          <!-- Charts row -->
+          <div class="machine-charts-row">
+            <div class="machine-chart-wrap">
+              <div class="machine-chart-title">Sales by Hour of Day</div>
+              <canvas id="machineHourChart"></canvas>
+            </div>
+            <div class="machine-chart-wrap">
+              <div class="machine-chart-title">Sales by Day of Week</div>
+              <canvas id="machineDowChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Top sellers -->
+          <div class="machine-sub-section">
+            <div class="machine-chart-title">Top Sellers</div>
+            <div class="table-container">
+              <table class="feedback-table" id="topSellersTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Units Sold</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody id="topSellersBody">
+                  <tr class="table-loading"><td colspan="5">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Slow movers -->
+          <div class="machine-sub-section" id="deadStockSection">
+            <div class="machine-chart-title">
+              Slow Movers
+              <span class="dead-stock-badge hidden" id="deadStockBadge">0</span>
+            </div>
+            <p class="detail-section__hint" style="margin-bottom:12px">Mapped items with no sales in the last 30 days</p>
+            <div id="deadStockList"></div>
+          </div>
+
         </div>
 
       </div>

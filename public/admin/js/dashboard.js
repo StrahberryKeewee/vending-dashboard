@@ -1,10 +1,12 @@
 const API_BASE = '/api';
 
-let donutChart     = null;
-let trendChart     = null;
-let currentPeriod  = 'weekly';
-let currentMachine = '';
-let allMachines    = [];
+let donutChart        = null;
+let trendChart        = null;
+let machineHourChart  = null;
+let machineDowChart   = null;
+let currentPeriod     = 'weekly';
+let currentMachine    = '';
+let allMachines       = [];
 
 async function apiFetch(path) {
   const res = await fetch(API_BASE + path);
@@ -365,7 +367,7 @@ async function openMachineDetail(machineId, location) {
   document.getElementById('detailMachineTitle').textContent = `${machineId} — ${location}`;
 
   populateCategorySelect();
-  await Promise.all([loadColumnMappings(machineId), loadRecentSales(machineId)]);
+  await Promise.all([loadColumnMappings(machineId), loadRecentSales(machineId), loadMachineAnalytics(machineId)]);
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -485,6 +487,177 @@ async function deleteColumnMapping(id) {
   } catch {}
 }
 
+const CAT_COLORS = {
+  'Snack':           '#ef4444',
+  'Beverage':        '#f59e0b',
+  'Health Products': '#3b82f6',
+  'School Supplies': '#22c55e',
+};
+
+async function loadMachineAnalytics(machineId) {
+  let data;
+  try {
+    data = await apiFetch(`/sales/machine_stats.php?machine_id=${encodeURIComponent(machineId)}`);
+  } catch {
+    return;
+  }
+
+  // ── Period comparison cards ─────────────────────────────────────────────────
+  const setChange = (elId, pct) => {
+    const el = document.getElementById(elId);
+    if (pct === null) { el.textContent = 'No prior period data'; el.className = 'stat-card__change flat'; return; }
+    const sign = pct >= 0 ? '+' : '';
+    el.textContent = `${sign}${pct}% vs prior period`;
+    el.className   = `stat-card__change ${pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat'}`;
+  };
+
+  const setTxns = (elId, txns) => {
+    const el = document.getElementById(elId);
+    el.textContent = `${txns} transaction${txns !== 1 ? 's' : ''}`;
+    el.className   = 'stat-card__change flat';
+  };
+
+  const w = data.period_compare.week;
+  const m = data.period_compare.month;
+
+  document.getElementById('mStatWeekRev').textContent     = formatCurrency(w.current);
+  document.getElementById('mStatLastWeekRev').textContent = formatCurrency(w.previous);
+  document.getElementById('mStatMonthRev').textContent    = formatCurrency(m.current);
+  document.getElementById('mStatLastMonthRev').textContent= formatCurrency(m.previous);
+  setChange('mStatWeekChange',  w.change_pct);
+  setChange('mStatMonthChange', m.change_pct);
+  setTxns('mStatWeekTxns',  w.txns_current);
+  setTxns('mStatMonthTxns', m.txns_current);
+
+  // ── Hour of day bar chart ───────────────────────────────────────────────────
+  const hourLabels = Array.from({ length: 24 }, (_, h) => {
+    if (h === 0)  return '12a';
+    if (h < 12)   return h + 'a';
+    if (h === 12) return '12p';
+    return (h - 12) + 'p';
+  });
+
+  const hourRevenue = data.by_hour.map(h => h.revenue);
+  const peakHour    = data.by_hour.reduce((a, b) => b.revenue > a.revenue ? b : a, data.by_hour[0]);
+
+  if (machineHourChart) machineHourChart.destroy();
+  machineHourChart = new Chart(
+    document.getElementById('machineHourChart').getContext('2d'),
+    {
+      type: 'bar',
+      data: {
+        labels: hourLabels,
+        datasets: [{
+          data:            hourRevenue,
+          backgroundColor: hourRevenue.map((_, i) =>
+            i === peakHour.hour ? '#2d6af4' : 'rgba(45,106,244,.25)'
+          ),
+          borderRadius:    3,
+          borderSkipped:   false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${formatCurrency(c.raw)}` } },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 }, maxRotation: 0 } },
+          y: {
+            grid: { color: '#f0f2f8' },
+            ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => '$' + v.toFixed(0) },
+            beginAtZero: true,
+          },
+        },
+      },
+    }
+  );
+
+  // ── Day of week bar chart ───────────────────────────────────────────────────
+  const dowRevenue = data.by_dow.map(d => d.revenue);
+  const peakDow    = data.by_dow.reduce((a, b) => b.revenue > a.revenue ? b : a, data.by_dow[0]);
+
+  if (machineDowChart) machineDowChart.destroy();
+  machineDowChart = new Chart(
+    document.getElementById('machineDowChart').getContext('2d'),
+    {
+      type: 'bar',
+      data: {
+        labels: data.by_dow.map(d => d.label),
+        datasets: [{
+          data:            dowRevenue,
+          backgroundColor: dowRevenue.map((_, i) =>
+            i === peakDow.dow - 1 ? '#22c55e' : 'rgba(34,197,94,.25)'
+          ),
+          borderRadius:    3,
+          borderSkipped:   false,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${formatCurrency(c.raw)}` } },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+          y: {
+            grid: { color: '#f0f2f8' },
+            ticks: { color: '#9ca3af', font: { size: 10 }, callback: v => '$' + v.toFixed(0) },
+            beginAtZero: true,
+          },
+        },
+      },
+    }
+  );
+
+  // ── Top sellers table ───────────────────────────────────────────────────────
+  const tbody = document.getElementById('topSellersBody');
+  if (!data.top_sellers.length) {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="5">No mapped sales yet</td></tr>';
+  } else {
+    tbody.innerHTML = data.top_sellers.map((s, i) => `
+      <tr>
+        <td><strong>${i + 1}</strong></td>
+        <td>${escHtml(s.product_name)}</td>
+        <td>
+          <span class="item-tag" style="background:${CAT_COLORS[s.category] ?? '#e5e7eb'}22;color:${CAT_COLORS[s.category] ?? '#6b7280'}">
+            ${escHtml(s.category ?? '')}
+          </span>
+        </td>
+        <td>${s.quantity}</td>
+        <td>${formatCurrency(s.revenue)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Slow movers ─────────────────────────────────────────────────────────────
+  const deadList  = document.getElementById('deadStockList');
+  const deadBadge = document.getElementById('deadStockBadge');
+
+  if (!data.dead_stock.length) {
+    deadBadge.classList.add('hidden');
+    deadList.innerHTML = '<div class="dead-stock-none">✓ All mapped items have recent sales</div>';
+  } else {
+    deadBadge.textContent = data.dead_stock.length;
+    deadBadge.classList.remove('hidden');
+    deadList.innerHTML = `<div class="dead-stock-list">${
+      data.dead_stock.map(d => `
+        <div class="dead-stock-chip">
+          <span class="dead-stock-chip__col">Col ${escHtml(d.column_num)}</span>
+          <span class="dead-stock-chip__name">${escHtml(d.product_name)}</span>
+          <span class="dead-stock-chip__days">${
+            d.days_since === null ? 'Never sold' : `${d.days_since}d ago`
+          }</span>
+        </div>
+      `).join('')
+    }</div>`;
+  }
+}
+
 function initMachineDetail() {
   // Close / X button — hide panel, deselect row, reset table contents
   document.getElementById('closeDetail').addEventListener('click', () => {
@@ -492,8 +665,23 @@ function initMachineDetail() {
     document.querySelectorAll('.machine-row').forEach(r => r.classList.remove('selected'));
     selectedMachineId = '';
     document.getElementById('detailMachineTitle').textContent = 'Machine Detail';
-    document.getElementById('columnsBody').innerHTML    = '<tr class="table-loading"><td colspan="4">Select a machine above</td></tr>';
+    document.getElementById('columnsBody').innerHTML     = '<tr class="table-loading"><td colspan="4">Select a machine above</td></tr>';
     document.getElementById('recentSalesBody').innerHTML = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
+    document.getElementById('topSellersBody').innerHTML  = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
+    document.getElementById('deadStockList').innerHTML   = '';
+    document.getElementById('deadStockBadge').classList.add('hidden');
+    // Reset period cards
+    ['mStatWeekRev','mStatLastWeekRev','mStatMonthRev','mStatLastMonthRev'].forEach(id => {
+      document.getElementById(id).textContent = '--';
+    });
+    ['mStatWeekChange','mStatWeekTxns','mStatMonthChange','mStatMonthTxns'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '';
+      el.className   = 'stat-card__change';
+    });
+    // Destroy machine charts
+    if (machineHourChart) { machineHourChart.destroy(); machineHourChart = null; }
+    if (machineDowChart)  { machineDowChart.destroy();  machineDowChart  = null; }
     // Re-collapse the mapping section
     const body = document.getElementById('columnMappingBody');
     const btn  = document.getElementById('columnMappingBtn');
