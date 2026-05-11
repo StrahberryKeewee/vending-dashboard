@@ -520,14 +520,14 @@ async function loadMachineAnalytics(machineId) {
   const w = data.period_compare.week;
   const m = data.period_compare.month;
 
-  document.getElementById('mStatWeekRev').textContent     = formatCurrency(w.current);
-  document.getElementById('mStatLastWeekRev').textContent = formatCurrency(w.previous);
-  document.getElementById('mStatMonthRev').textContent    = formatCurrency(m.current);
-  document.getElementById('mStatLastMonthRev').textContent= formatCurrency(m.previous);
+  document.getElementById('mStatWeekRev').textContent      = formatCurrency(w.current);
+  document.getElementById('mStatLastWeekRev').textContent  = formatCurrency(w.previous);
+  document.getElementById('mStatMonthRev').textContent     = formatCurrency(m.current);
+  document.getElementById('mStatLastMonthRev').textContent = formatCurrency(m.previous);
   setChange('mStatWeekChange',  w.change_pct);
   setChange('mStatMonthChange', m.change_pct);
-  setTxns('mStatWeekTxns',  w.txns_current);
-  setTxns('mStatMonthTxns', m.txns_current);
+  setTxns('mStatWeekTxns',  w.txns_previous);   // subtext under Last Week card
+  setTxns('mStatMonthTxns', m.txns_previous);   // subtext under Last Month card
 
   // ── Hour of day bar chart ───────────────────────────────────────────────────
   const hourLabels = Array.from({ length: 24 }, (_, h) => {

@@ -139,8 +139,8 @@ jsonResponse([
         'revenue'       => (float) $r['total_revenue'],
     ], $topSellers),
     'period_compare' => [
-        'week'  => ['current' => $thisWeek['revenue'],  'previous' => $lastWeek['revenue'],  'txns_current' => $thisWeek['txns'],  'change_pct' => $pctChange($thisWeek['revenue'],  $lastWeek['revenue'])],
-        'month' => ['current' => $thisMonth['revenue'], 'previous' => $lastMonth['revenue'], 'txns_current' => $thisMonth['txns'], 'change_pct' => $pctChange($thisMonth['revenue'], $lastMonth['revenue'])],
+        'week'  => ['current' => $thisWeek['revenue'],  'previous' => $lastWeek['revenue'],  'txns_current' => $thisWeek['txns'],  'txns_previous' => $lastWeek['txns'],  'change_pct' => $pctChange($thisWeek['revenue'],  $lastWeek['revenue'])],
+        'month' => ['current' => $thisMonth['revenue'], 'previous' => $lastMonth['revenue'], 'txns_current' => $thisMonth['txns'], 'txns_previous' => $lastMonth['txns'], 'change_pct' => $pctChange($thisMonth['revenue'], $lastMonth['revenue'])],
     ],
     'dead_stock' => array_map(fn($r) => [
         'column_num'   => $r['column_num'],
