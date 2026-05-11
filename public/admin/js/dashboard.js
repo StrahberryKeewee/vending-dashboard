@@ -682,18 +682,32 @@ function initMachineDetail() {
     // Destroy machine charts
     if (machineHourChart) { machineHourChart.destroy(); machineHourChart = null; }
     if (machineDowChart)  { machineDowChart.destroy();  machineDowChart  = null; }
-    // Re-collapse the mapping section
-    const body = document.getElementById('columnMappingBody');
-    const btn  = document.getElementById('columnMappingBtn');
-    body.classList.add('collapsed');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.title = 'Expand';
+    // Re-collapse both collapsible sections
+    [
+      ['columnMappingBody', 'columnMappingBtn'],
+      ['recentSalesBody_wrap', 'recentSalesBtn'],
+    ].forEach(([bodyId, btnId]) => {
+      document.getElementById(bodyId).classList.add('collapsed');
+      const btn = document.getElementById(btnId);
+      btn.setAttribute('aria-expanded', 'false');
+      btn.title = 'Expand';
+    });
   });
 
   // Column mapping collapse toggle
   document.getElementById('columnMappingToggle').addEventListener('click', () => {
     const body = document.getElementById('columnMappingBody');
     const btn  = document.getElementById('columnMappingBtn');
+    const open = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', open);
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.title = open ? 'Expand' : 'Collapse';
+  });
+
+  // Recent sales collapse toggle
+  document.getElementById('recentSalesToggle').addEventListener('click', () => {
+    const body = document.getElementById('recentSalesBody_wrap');
+    const btn  = document.getElementById('recentSalesBtn');
     const open = !body.classList.contains('collapsed');
     body.classList.toggle('collapsed', open);
     btn.setAttribute('aria-expanded', String(!open));

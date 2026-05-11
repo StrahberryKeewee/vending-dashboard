@@ -320,25 +320,34 @@
 
         <!-- Recent sales -->
         <div class="detail-section">
-          <div class="detail-section__header">
-            <span class="detail-section__title">Recent Sales</span>
-            <span class="detail-section__hint">Use this to verify column mappings and remove test vends</span>
+          <div class="detail-section__header detail-section__header--toggle" id="recentSalesToggle">
+            <div class="detail-section__header-text">
+              <span class="detail-section__title">Recent Sales</span>
+              <span class="detail-section__hint">Use this to verify column mappings and remove test vends</span>
+            </div>
+            <button class="btn-collapse" id="recentSalesBtn" aria-expanded="false" title="Expand">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
           </div>
-          <div class="table-container">
-            <table class="feedback-table" id="recentSalesTable">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Column</th>
-                  <th>Item</th>
-                  <th>Amount</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="recentSalesBody">
-                <tr class="table-loading"><td colspan="5">Select a machine above</td></tr>
-              </tbody>
-            </table>
+          <div class="detail-section__body collapsed" id="recentSalesBody_wrap">
+            <div class="table-container">
+              <table class="feedback-table" id="recentSalesTable">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Column</th>
+                    <th>Item</th>
+                    <th>Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="recentSalesBody">
+                  <tr class="table-loading"><td colspan="5">Select a machine above</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
