@@ -79,14 +79,16 @@ $topSellers = $topStmt->fetchAll();
 
 // ── Period comparison ─────────────────────────────────────────────────────────
 $now = new DateTime();
+$today = $now->format('Y-m-d');
 
-$thisWeekStart  = (clone $now)->modify('monday this week')->format('Y-m-d');
-$lastWeekStart  = (clone $now)->modify('monday last week')->format('Y-m-d');
-$lastWeekEnd    = (clone $now)->modify('sunday last week')->format('Y-m-d');
+// Rolling 7-day windows (avoids Monday = $0 problem with calendar weeks)
+$last7Start  = (clone $now)->modify('-6 days')->format('Y-m-d');  // today included = 7 days
+$prev7Start  = (clone $now)->modify('-13 days')->format('Y-m-d');
+$prev7End    = (clone $now)->modify('-7 days')->format('Y-m-d');
+
 $thisMonthStart = $now->format('Y-m-01');
 $lastMonthStart = (clone $now)->modify('first day of last month')->format('Y-m-d');
 $lastMonthEnd   = (clone $now)->modify('last day of last month')->format('Y-m-d');
-$today          = $now->format('Y-m-d');
 
 $periodStmt = $pdo->prepare(
     'SELECT COALESCE(SUM(amount), 0) AS revenue,
@@ -102,8 +104,8 @@ $fetchPeriod = function(string $start, string $end) use ($pdo, $periodStmt, $mac
     return ['revenue' => (float) $row['revenue'], 'txns' => (int) $row['txn_count']];
 };
 
-$thisWeek  = $fetchPeriod($thisWeekStart,  $today);
-$lastWeek  = $fetchPeriod($lastWeekStart,  $lastWeekEnd);
+$thisWeek  = $fetchPeriod($last7Start, $today);
+$lastWeek  = $fetchPeriod($prev7Start, $prev7End);
 $thisMonth = $fetchPeriod($thisMonthStart, $today);
 $lastMonth = $fetchPeriod($lastMonthStart, $lastMonthEnd);
 
