@@ -15,7 +15,7 @@ if ($method === 'GET') {
     }
 
     $stmt = $pdo->prepare(
-        'SELECT id, column_num, product_name, category, product_id
+        'SELECT id, column_num, product_name, category, product_id, capacity
          FROM   machine_columns
          WHERE  machine_id = :machine_id
          ORDER BY CAST(column_num AS UNSIGNED), column_num'
@@ -30,6 +30,8 @@ if ($method === 'POST') {
     $columnNum   = trim($body['column_num']   ?? '');
     $productName = trim($body['product_name'] ?? '');
     $category    = trim($body['category']     ?? '');
+    $capacity    = isset($body['capacity']) && $body['capacity'] !== '' && $body['capacity'] !== null
+                   ? (int) $body['capacity'] : null;
 
     if ($machineId === '' || $columnNum === '' || $productName === '' || $category === '') {
         jsonError('machine_id, column_num, product_name, and category are required', 400);
@@ -56,12 +58,13 @@ if ($method === 'POST') {
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO machine_columns (machine_id, column_num, product_name, category, product_id)
-         VALUES (:machine_id, :column_num, :product_name, :category, :product_id)
+        'INSERT INTO machine_columns (machine_id, column_num, product_name, category, product_id, capacity)
+         VALUES (:machine_id, :column_num, :product_name, :category, :product_id, :capacity)
          ON DUPLICATE KEY UPDATE
            product_name = :product_name2,
            category     = :category2,
-           product_id   = :product_id2'
+           product_id   = :product_id2,
+           capacity     = :capacity2'
     );
     $stmt->execute([
         ':machine_id'    => $machineId,
@@ -69,9 +72,11 @@ if ($method === 'POST') {
         ':product_name'  => $productName,
         ':category'      => $category,
         ':product_id'    => $productId,
+        ':capacity'      => $capacity,
         ':product_name2' => $productName,
         ':category2'     => $category,
         ':product_id2'   => $productId,
+        ':capacity2'     => $capacity,
     ]);
 
     jsonResponse(['success' => true]);

@@ -297,11 +297,12 @@
                     <th>Column #</th>
                     <th>Item Name</th>
                     <th>Category</th>
+                    <th>Cap</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody id="columnsBody">
-                  <tr class="table-loading"><td colspan="4">Select a machine above</td></tr>
+                  <tr class="table-loading"><td colspan="5">Select a machine above</td></tr>
                 </tbody>
               </table>
             </div>
@@ -313,6 +314,7 @@
               <select class="mapping-select mapping-select--cat" id="newCategory">
                 <option value="">Category...</option>
               </select>
+              <input type="number" class="mapping-input mapping-input--cap" id="newCapacity" placeholder="Cap" min="1" max="999" />
               <button class="btn-add-mapping" id="addMappingBtn">Add</button>
             </div>
           </div>
@@ -355,8 +357,8 @@
         <div class="detail-section">
           <div class="detail-section__header detail-section__header--toggle" id="inventoryToggle">
             <div class="detail-section__header-text">
-              <span class="detail-section__title">Inventory</span>
-              <span class="detail-section__hint">Track stock levels across all mapped slots</span>
+              <span class="detail-section__title">Restock Planner</span>
+              <span class="detail-section__hint">Track qty per slot and see what to bring on your next visit</span>
             </div>
             <div class="inventory-header-actions">
               <button class="btn-record-count hidden" id="cancelCountBtn">Cancel</button>
@@ -374,12 +376,12 @@
               <table class="feedback-table" id="inventoryTable">
                 <thead>
                   <tr>
-                    <th>Column</th>
+                    <th>Slot</th>
                     <th>Product</th>
                     <th>Category</th>
-                    <th>Qty</th>
-                    <th>Last Updated</th>
-                    <th></th>
+                    <th>Qty / Cap</th>
+                    <th>To Bring</th>
+                    <th>Last Counted</th>
                   </tr>
                 </thead>
                 <tbody id="inventoryTbody">

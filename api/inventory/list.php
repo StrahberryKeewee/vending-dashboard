@@ -19,6 +19,7 @@ $stmt = $pdo->prepare(
     'SELECT mc.column_num,
             mc.product_name,
             mc.category,
+            mc.capacity,
             COALESCE(mi.current_qty, 0)  AS current_qty,
             mi.updated_at
      FROM   machine_columns mc

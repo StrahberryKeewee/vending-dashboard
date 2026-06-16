@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $pdo  = Database::connect();
 $rows = $pdo->query(
-    'SELECT machine_id, location, building, floor, status FROM machines ORDER BY machine_id'
+    'SELECT machine_id, location, building, floor, status, has_data FROM machines ORDER BY machine_id'
 )->fetchAll();
 
 jsonResponse(['machines' => $rows]);

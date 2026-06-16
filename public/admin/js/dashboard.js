@@ -313,7 +313,8 @@ async function loadFeedback() {
 
 const CATEGORIES = ['Snack', 'Beverage', 'Health Products', 'School Supplies'];
 
-let selectedMachineId = '';
+let selectedMachineId      = '';
+let selectedMachineHasData = false;
 
 function loadMachines() {
   const tbody = document.getElementById('machinesBody');
@@ -358,7 +359,8 @@ function populateCategorySelect() {
 }
 
 async function openMachineDetail(machineId, location) {
-  selectedMachineId = machineId;
+  selectedMachineId      = machineId;
+  selectedMachineHasData = !!(allMachines.find(m => m.machine_id === machineId)?.has_data);
 
   document.querySelectorAll('.machine-row').forEach(r => r.classList.toggle('selected', r.dataset.machineId === machineId));
 
@@ -443,6 +445,7 @@ async function loadColumnMappings(machineId) {
       <td><strong>${escHtml(c.column_num)}</strong></td>
       <td>${escHtml(c.product_name)}</td>
       <td><span class="item-tag">${escHtml(c.category ?? '')}</span></td>
+      <td style="color:var(--text-muted);font-size:.82rem">${c.capacity ?? '—'}</td>
       <td>
         <button class="btn-delete" onclick="deleteColumnMapping(${c.id})" title="Remove">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -460,6 +463,8 @@ async function addColumnMapping() {
   const colNum      = document.getElementById('newColumnNum').value.trim();
   const productName = document.getElementById('newProductName').value.trim();
   const category    = document.getElementById('newCategory').value;
+  const capVal      = document.getElementById('newCapacity').value.trim();
+  const capacity    = capVal !== '' ? parseInt(capVal) || null : null;
   const btn         = document.getElementById('addMappingBtn');
 
   if (!colNum || !productName || !category || !selectedMachineId) return;
@@ -469,11 +474,12 @@ async function addColumnMapping() {
     await fetch(`${API_BASE}/machines/columns.php`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ machine_id: selectedMachineId, column_num: colNum, product_name: productName, category }),
+      body:    JSON.stringify({ machine_id: selectedMachineId, column_num: colNum, product_name: productName, category, capacity }),
     });
     document.getElementById('newColumnNum').value   = '';
     document.getElementById('newProductName').value = '';
     document.getElementById('newCategory').value    = '';
+    document.getElementById('newCapacity').value    = '';
     await loadColumnMappings(selectedMachineId);
   } finally {
     btn.disabled = false;
@@ -511,15 +517,43 @@ async function loadInventory(machineId) {
 }
 
 function renderInventorySummary() {
-  const el      = document.getElementById('inventorySummary');
-  const total   = inventoryData.reduce((s, r) => s + (parseInt(r.current_qty) || 0), 0);
-  const empty   = inventoryData.filter(r => parseInt(r.current_qty) === 0).length;
-  const inStock = inventoryData.length - empty;
+  const el = document.getElementById('inventorySummary');
+
+  const needRestock = inventoryData.filter(r => {
+    if (!r.updated_at) return false;
+    const qty = parseInt(r.current_qty) || 0;
+    const cap = r.capacity != null ? parseInt(r.capacity) : null;
+    return qty === 0 || (cap !== null && qty / cap < 0.3);
+  });
+  const unknown = inventoryData.filter(r => !r.updated_at);
+
+  const latestDate = inventoryData.reduce((best, r) => {
+    if (!r.updated_at) return best;
+    const d = new Date(r.updated_at);
+    return (!best || d > best) ? d : best;
+  }, null);
+
+  let lastCountText;
+  if (latestDate) {
+    const days = Math.floor((Date.now() - latestDate) / 86400000);
+    lastCountText = days === 0 ? 'Last count: today' : days === 1 ? 'Last count: yesterday' : `Last count: ${days} days ago`;
+  } else {
+    lastCountText = 'Never counted — use Record Count to set initial quantities';
+  }
+
+  const parts = [];
+  if (needRestock.length > 0) parts.push(`<div class="inv-summary-item" style="color:#ef4444"><span class="inv-dot" style="background:#ef4444"></span>${needRestock.length} need restocking</div>`);
+  if (unknown.length > 0)     parts.push(`<div class="inv-summary-item" style="color:#9ca3af"><span class="inv-dot" style="background:#9ca3af"></span>${unknown.length} uncounted</div>`);
+  if (needRestock.length === 0 && unknown.length === 0 && inventoryData.length > 0)
+    parts.push(`<div class="inv-summary-item" style="color:#22c55e"><span class="inv-dot inv-dot--ok"></span>All slots stocked</div>`);
+
+  const machineNote = !selectedMachineHasData
+    ? `<div class="inv-machine-note">Manual tracking — record a count each visit to keep this accurate</div>`
+    : '';
 
   el.innerHTML = `
-    <div class="inv-summary-item"><span class="inv-dot inv-dot--ok"></span>${inStock} slot${inStock !== 1 ? 's' : ''} in stock</div>
-    ${empty > 0 ? `<div class="inv-summary-item"><span class="inv-dot inv-dot--empty"></span>${empty} empty</div>` : ''}
-    <div class="inv-summary-item" style="color:var(--text-muted)">${total} total items</div>
+    ${machineNote}
+    <div class="inv-summary-row">${parts.join('')}<div class="inv-summary-item" style="color:var(--text-muted)">${lastCountText}</div></div>
   `;
 }
 
@@ -532,27 +566,67 @@ function renderInventoryTable() {
   }
 
   tbody.innerHTML = inventoryData.map(row => {
-    const qty     = parseInt(row.current_qty) || 0;
-    const isEmpty = qty === 0;
-    const updated = row.updated_at
-      ? new Date(row.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      : '—';
+    const qty         = parseInt(row.current_qty) || 0;
+    const cap         = row.capacity != null ? parseInt(row.capacity) : null;
+    const neverCounted = !row.updated_at;
 
-    const qtyCell = inventoryCountMode
-      ? `<input class="inv-qty-input" type="number" min="0" data-col="${escHtml(row.column_num)}" value="${qty}" />`
-      : `<div class="inv-qty">
-           <span class="inv-qty-value${isEmpty ? ' empty' : ''}">${qty}</span>
-           <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', -1)" ${qty === 0 ? 'disabled' : ''}>−</button>
-           <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', 1)">+</button>
-         </div>`;
+    // Status dot
+    let dotClass, dotTitle;
+    if (neverCounted) {
+      dotClass = 'inv-status-dot--unknown'; dotTitle = 'Never counted';
+    } else if (qty === 0) {
+      dotClass = 'inv-status-dot--empty';   dotTitle = 'Empty';
+    } else if (cap !== null && qty / cap < 0.3) {
+      dotClass = 'inv-status-dot--low';     dotTitle = 'Low';
+    } else {
+      dotClass = 'inv-status-dot--ok';      dotTitle = 'OK';
+    }
+
+    // Qty / Cap cell
+    let qtyCell;
+    if (inventoryCountMode) {
+      qtyCell = `<input class="inv-qty-input" type="number" min="0" data-col="${escHtml(row.column_num)}" value="${neverCounted ? '' : qty}" placeholder="${neverCounted ? '?' : ''}" />`;
+    } else {
+      const qtyStr  = neverCounted ? '—' : String(qty);
+      const capStr  = cap !== null ? `<span class="inv-cap-frac"> / ${cap}</span>` : '';
+      const isEmpty = !neverCounted && qty === 0;
+      qtyCell = `<div class="inv-qty">
+        <span class="inv-status-dot ${dotClass}" title="${dotTitle}"></span>
+        <span class="inv-qty-value${isEmpty ? ' empty' : ''}">${qtyStr}${capStr}</span>
+        <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', -1)" ${qty === 0 || neverCounted ? 'disabled' : ''}>−</button>
+        <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', 1)">+</button>
+      </div>`;
+    }
+
+    // To Bring
+    let toBring;
+    if (cap === null) {
+      toBring = '<span style="color:var(--text-muted)">—</span>';
+    } else if (neverCounted) {
+      toBring = `<span class="inv-to-bring inv-to-bring--unknown">up to ${cap}</span>`;
+    } else {
+      const need = cap - qty;
+      toBring = need > 0
+        ? `<span class="inv-to-bring">${need}</span>`
+        : `<span style="color:#22c55e;font-weight:600">✓</span>`;
+    }
+
+    // Last Counted
+    let lastCounted;
+    if (!row.updated_at) {
+      lastCounted = '<span style="color:#9ca3af">Never</span>';
+    } else {
+      const days = Math.floor((Date.now() - new Date(row.updated_at)) / 86400000);
+      lastCounted = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days}d ago`;
+    }
 
     return `<tr>
       <td><strong>${escHtml(row.column_num)}</strong></td>
       <td>${escHtml(row.product_name)}</td>
       <td><span class="item-tag" style="background:${CAT_COLORS[row.category] ?? '#e5e7eb'}22;color:${CAT_COLORS[row.category] ?? '#6b7280'}">${escHtml(row.category ?? '')}</span></td>
       <td>${qtyCell}</td>
-      <td style="color:var(--text-muted);font-size:.78rem">${updated}</td>
-      <td></td>
+      <td>${toBring}</td>
+      <td style="color:var(--text-muted);font-size:.78rem">${lastCounted}</td>
     </tr>`;
   }).join('');
 }
@@ -803,9 +877,10 @@ function initMachineDetail() {
   document.getElementById('closeDetail').addEventListener('click', () => {
     document.getElementById('machineDetail').classList.add('hidden');
     document.querySelectorAll('.machine-row').forEach(r => r.classList.remove('selected'));
-    selectedMachineId = '';
+    selectedMachineId      = '';
+    selectedMachineHasData = false;
     document.getElementById('detailMachineTitle').textContent = 'Machine Detail';
-    document.getElementById('columnsBody').innerHTML     = '<tr class="table-loading"><td colspan="4">Select a machine above</td></tr>';
+    document.getElementById('columnsBody').innerHTML     = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
     document.getElementById('recentSalesBody').innerHTML = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
     document.getElementById('topSellersBody').innerHTML  = '<tr class="table-loading"><td colspan="5">Select a machine above</td></tr>';
     document.getElementById('deadStockList').innerHTML   = '';
