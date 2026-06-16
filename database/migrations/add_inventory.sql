@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS inventory_logs (
 -- Auto-decrement inventory when a sale is inserted (data machines only)
 DROP TRIGGER IF EXISTS trg_sale_decrement_inventory;
 
+DELIMITER //
+
 CREATE TRIGGER trg_sale_decrement_inventory
 AFTER INSERT ON sales
 FOR EACH ROW
@@ -58,4 +60,6 @@ BEGIN
                 (NEW.machine_id, NEW.vend_column, 'sale', v_before, v_after, -(v_before - v_after), 'Auto from sale');
         END IF;
     END IF;
-END;
+END //
+
+DELIMITER ;
