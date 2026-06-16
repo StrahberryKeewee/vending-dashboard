@@ -351,6 +351,48 @@
           </div>
         </div>
 
+        <!-- Inventory -->
+        <div class="detail-section">
+          <div class="detail-section__header detail-section__header--toggle" id="inventoryToggle">
+            <div class="detail-section__header-text">
+              <span class="detail-section__title">Inventory</span>
+              <span class="detail-section__hint">Track stock levels across all mapped slots</span>
+            </div>
+            <div class="inventory-header-actions">
+              <button class="btn-record-count hidden" id="cancelCountBtn">Cancel</button>
+              <button class="btn-record-count" id="recordCountBtn">Record Count</button>
+              <button class="btn-collapse" id="inventoryCollapseBtn" aria-expanded="false" title="Expand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="detail-section__body collapsed" id="inventoryCollapse">
+            <div class="inventory-summary" id="inventorySummary"></div>
+            <div class="table-container">
+              <table class="feedback-table" id="inventoryTable">
+                <thead>
+                  <tr>
+                    <th>Column</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Qty</th>
+                    <th>Last Updated</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTbody">
+                  <tr class="table-loading"><td colspan="6">Select a machine above</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="inventory-count-footer hidden" id="inventoryCountFooter">
+              <button class="btn-add-mapping" id="saveCountBtn">Save Count</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Machine Analytics -->
         <div class="detail-section" id="machineAnalyticsSection">
           <div class="detail-section__header">

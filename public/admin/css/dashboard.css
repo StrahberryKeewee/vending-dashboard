@@ -813,6 +813,116 @@ body {
 .btn-add-mapping:hover { opacity: .88; }
 .btn-add-mapping:disabled { opacity: .5; cursor: default; }
 
+/* ── Inventory ──────────────────────────────────────────────────────────────── */
+
+.inventory-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-record-count {
+  padding: 5px 12px;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.btn-record-count:hover { background: #bfdbfe; }
+.btn-record-count.hidden { display: none; }
+
+.inventory-summary {
+  display: flex;
+  gap: 20px;
+  padding: 12px 0 16px;
+  font-size: .8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.inv-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.inv-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.inv-dot--ok    { background: #22c55e; }
+.inv-dot--empty { background: var(--red); }
+
+/* Qty cell in normal mode */
+.inv-qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv-qty-value {
+  min-width: 24px;
+  font-weight: 600;
+  font-size: .88rem;
+  color: var(--text-primary);
+}
+
+.inv-qty-value.empty { color: var(--red); }
+
+.btn-inv-adj {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  transition: background .12s, color .12s;
+  padding: 0;
+}
+
+.btn-inv-adj:hover { background: var(--bg); color: var(--text-primary); }
+.btn-inv-adj:disabled { opacity: .35; cursor: default; }
+
+/* Qty input in count mode */
+.inv-qty-input {
+  width: 64px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--accent);
+  border-radius: 6px;
+  font-size: .84rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  text-align: center;
+}
+
+/* Save count footer */
+.inventory-count-footer {
+  padding: 14px 0 4px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inventory-count-footer.hidden { display: none; }
+
 /* ── Machine Analytics ──────────────────────────────────────────────────────── */
 
 /* Period comparison grid */

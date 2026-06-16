@@ -367,7 +367,7 @@ async function openMachineDetail(machineId, location) {
   document.getElementById('detailMachineTitle').textContent = `${machineId} — ${location}`;
 
   populateCategorySelect();
-  await Promise.all([loadColumnMappings(machineId), loadRecentSales(machineId), loadMachineAnalytics(machineId)]);
+  await Promise.all([loadColumnMappings(machineId), loadRecentSales(machineId), loadMachineAnalytics(machineId), loadInventory(machineId)]);
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -485,6 +485,146 @@ async function deleteColumnMapping(id) {
     await fetch(`${API_BASE}/machines/columns.php?id=${id}`, { method: 'DELETE' });
     await loadColumnMappings(selectedMachineId);
   } catch {}
+}
+
+// ── Inventory ─────────────────────────────────────────────────────────────────
+
+let inventoryData    = [];
+let inventoryCountMode = false;
+
+async function loadInventory(machineId) {
+  const tbody = document.getElementById('inventoryTbody');
+  tbody.innerHTML = '<tr class="table-loading"><td colspan="6">Loading...</td></tr>';
+
+  let data;
+  try {
+    data = await apiFetch(`/inventory/list.php?machine_id=${encodeURIComponent(machineId)}`);
+  } catch {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="6">Failed to load.</td></tr>';
+    return;
+  }
+
+  inventoryData = data.inventory ?? [];
+  inventoryCountMode = false;
+  renderInventoryTable();
+  renderInventorySummary();
+}
+
+function renderInventorySummary() {
+  const el      = document.getElementById('inventorySummary');
+  const total   = inventoryData.reduce((s, r) => s + (parseInt(r.current_qty) || 0), 0);
+  const empty   = inventoryData.filter(r => parseInt(r.current_qty) === 0).length;
+  const inStock = inventoryData.length - empty;
+
+  el.innerHTML = `
+    <div class="inv-summary-item"><span class="inv-dot inv-dot--ok"></span>${inStock} slot${inStock !== 1 ? 's' : ''} in stock</div>
+    ${empty > 0 ? `<div class="inv-summary-item"><span class="inv-dot inv-dot--empty"></span>${empty} empty</div>` : ''}
+    <div class="inv-summary-item" style="color:var(--text-muted)">${total} total items</div>
+  `;
+}
+
+function renderInventoryTable() {
+  const tbody = document.getElementById('inventoryTbody');
+
+  if (!inventoryData.length) {
+    tbody.innerHTML = '<tr class="table-loading"><td colspan="6">No mapped columns yet — add mappings first.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = inventoryData.map(row => {
+    const qty     = parseInt(row.current_qty) || 0;
+    const isEmpty = qty === 0;
+    const updated = row.updated_at
+      ? new Date(row.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : '—';
+
+    const qtyCell = inventoryCountMode
+      ? `<input class="inv-qty-input" type="number" min="0" data-col="${escHtml(row.column_num)}" value="${qty}" />`
+      : `<div class="inv-qty">
+           <span class="inv-qty-value${isEmpty ? ' empty' : ''}">${qty}</span>
+           <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', -1)" ${qty === 0 ? 'disabled' : ''}>−</button>
+           <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', 1)">+</button>
+         </div>`;
+
+    return `<tr>
+      <td><strong>${escHtml(row.column_num)}</strong></td>
+      <td>${escHtml(row.product_name)}</td>
+      <td><span class="item-tag" style="background:${CAT_COLORS[row.category] ?? '#e5e7eb'}22;color:${CAT_COLORS[row.category] ?? '#6b7280'}">${escHtml(row.category ?? '')}</span></td>
+      <td>${qtyCell}</td>
+      <td style="color:var(--text-muted);font-size:.78rem">${updated}</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+async function quickAdjust(columnNum, delta) {
+  const row = inventoryData.find(r => r.column_num === columnNum);
+  if (!row) return;
+  const newQty = Math.max(0, (parseInt(row.current_qty) || 0) + delta);
+  try {
+    await fetch(`${API_BASE}/inventory/adjust.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ machine_id: selectedMachineId, column_num: columnNum, qty: newQty }),
+    });
+    row.current_qty = newQty;
+    row.updated_at  = new Date().toISOString();
+    renderInventoryTable();
+    renderInventorySummary();
+  } catch {}
+}
+
+function startCountMode() {
+  inventoryCountMode = true;
+  renderInventoryTable();
+  document.getElementById('recordCountBtn').classList.add('hidden');
+  document.getElementById('cancelCountBtn').classList.remove('hidden');
+  document.getElementById('inventoryCountFooter').classList.remove('hidden');
+}
+
+function cancelCountMode() {
+  inventoryCountMode = false;
+  renderInventoryTable();
+  document.getElementById('recordCountBtn').classList.remove('hidden');
+  document.getElementById('cancelCountBtn').classList.add('hidden');
+  document.getElementById('inventoryCountFooter').classList.add('hidden');
+}
+
+async function saveCount() {
+  const inputs = document.querySelectorAll('.inv-qty-input');
+  const counts = Array.from(inputs).map(inp => ({
+    column_num: inp.dataset.col,
+    qty: Math.max(0, parseInt(inp.value) || 0),
+  }));
+
+  try {
+    await fetch(`${API_BASE}/inventory/adjust.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ machine_id: selectedMachineId, counts, note: 'Manual inventory count' }),
+    });
+    await loadInventory(selectedMachineId);
+    cancelCountMode();
+    showToast('Inventory count saved');
+  } catch {
+    showToast('Failed to save count');
+  }
+}
+
+function initInventory() {
+  document.getElementById('inventoryToggle').addEventListener('click', e => {
+    if (e.target.closest('.inventory-header-actions button:not(.btn-collapse)')) return;
+    const body = document.getElementById('inventoryCollapse');
+    const btn  = document.getElementById('inventoryCollapseBtn');
+    const open = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', open);
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.title = open ? 'Expand' : 'Collapse';
+  });
+
+  document.getElementById('recordCountBtn').addEventListener('click', e => { e.stopPropagation(); startCountMode(); });
+  document.getElementById('cancelCountBtn').addEventListener('click',  e => { e.stopPropagation(); cancelCountMode(); });
+  document.getElementById('saveCountBtn').addEventListener('click',    saveCount);
 }
 
 const CAT_COLORS = {
@@ -682,10 +822,18 @@ function initMachineDetail() {
     // Destroy machine charts
     if (machineHourChart) { machineHourChart.destroy(); machineHourChart = null; }
     if (machineDowChart)  { machineDowChart.destroy();  machineDowChart  = null; }
-    // Re-collapse both collapsible sections
+    // Reset inventory
+    inventoryData = [];
+    inventoryCountMode = false;
+    document.getElementById('inventoryTbody').innerHTML = '<tr class="table-loading"><td colspan="6">Select a machine above</td></tr>';
+    document.getElementById('inventorySummary').innerHTML = '';
+    cancelCountMode();
+
+    // Re-collapse all collapsible sections
     [
       ['columnMappingBody', 'columnMappingBtn'],
       ['recentSalesBody_wrap', 'recentSalesBtn'],
+      ['inventoryCollapse', 'inventoryCollapseBtn'],
     ].forEach(([bodyId, btnId]) => {
       document.getElementById(bodyId).classList.add('collapsed');
       const btn = document.getElementById(btnId);
@@ -806,6 +954,7 @@ async function init() {
   initPeriodToggle();
   initQrModal();
   initMachineDetail();
+  initInventory();
   await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 
