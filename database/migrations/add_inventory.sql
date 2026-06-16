@@ -27,39 +27,4 @@ CREATE TABLE IF NOT EXISTS inventory_logs (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB;
 
--- Auto-decrement inventory when a sale is inserted (data machines only)
-DROP TRIGGER IF EXISTS trg_sale_decrement_inventory;
-
-DELIMITER //
-
-CREATE TRIGGER trg_sale_decrement_inventory
-AFTER INSERT ON sales
-FOR EACH ROW
-BEGIN
-    DECLARE v_before INT DEFAULT 0;
-    DECLARE v_after  INT DEFAULT 0;
-
-    IF NEW.vend_column IS NOT NULL THEN
-        SELECT current_qty INTO v_before
-        FROM   machine_inventory
-        WHERE  machine_id = NEW.machine_id
-          AND  column_num = NEW.vend_column
-        LIMIT 1;
-
-        IF v_before IS NOT NULL THEN
-            SET v_after = GREATEST(v_before - NEW.quantity, 0);
-
-            UPDATE machine_inventory
-            SET    current_qty = v_after
-            WHERE  machine_id  = NEW.machine_id
-              AND  column_num  = NEW.vend_column;
-
-            INSERT INTO inventory_logs
-                (machine_id, column_num, change_type, qty_before, qty_after, qty_change, note)
-            VALUES
-                (NEW.machine_id, NEW.vend_column, 'sale', v_before, v_after, -(v_before - v_after), 'Auto from sale');
-        END IF;
-    END IF;
-END //
-
-DELIMITER ;
+-- Note: inventory auto-decrement is handled in sqs_consumer.php (avoids RDS SUPER privilege requirement)

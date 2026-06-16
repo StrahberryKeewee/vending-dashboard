@@ -40,6 +40,24 @@ $insertSale = $pdo->prepare(
      ON DUPLICATE KEY UPDATE ingested_at = ingested_at'
 );
 
+$decrInventory = $pdo->prepare(
+    'UPDATE machine_inventory
+     SET    current_qty = GREATEST(current_qty - :quantity, 0)
+     WHERE  machine_id  = :machine_id
+       AND  column_num  = :column_num'
+);
+
+$logInventory = $pdo->prepare(
+    'INSERT INTO inventory_logs (machine_id, column_num, change_type, qty_before, qty_after, qty_change, note)
+     SELECT :machine_id, :column_num, \'sale\',
+            current_qty + :quantity,
+            current_qty,
+            -:quantity,
+            \'Auto from sale\'
+     FROM   machine_inventory
+     WHERE  machine_id = :machine_id AND column_num = :column_num'
+);
+
 $lookupProduct = $pdo->prepare('SELECT id FROM products WHERE sku = :sku LIMIT 1');
 
 $lookupColumn = $pdo->prepare(
@@ -112,6 +130,12 @@ foreach ($messages as $message) {
         ':sale_time'       => $saleTime,
         ':sqs_message_id'  => $messageId,
     ]);
+
+    // Auto-decrement inventory if this machine+column has a tracked row
+    if (($colNum ?? '') !== '' && $insertSale->rowCount() > 0) {
+        $logInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':quantity' => $quantity]);
+        $decrInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':quantity' => $quantity]);
+    }
 
     deleteMessage($sqs, $queueUrl, $receiptHandle);
     $processed++;
