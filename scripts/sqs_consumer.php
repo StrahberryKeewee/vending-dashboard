@@ -61,7 +61,7 @@ $logInventory = $pdo->prepare(
 $lookupProduct = $pdo->prepare('SELECT id FROM products WHERE sku = :sku LIMIT 1');
 
 $lookupColumn = $pdo->prepare(
-    'SELECT product_id FROM machine_columns
+    'SELECT product_id, product_name FROM machine_columns
      WHERE machine_id = :machine_id AND column_num = :column_num
      LIMIT 1'
 );
@@ -115,8 +115,9 @@ foreach ($messages as $message) {
     if ($vendCol !== '') {
         $colNum = ltrim(explode('(', $vendCol)[0], '0') ?: '0';
         $lookupColumn->execute([':machine_id' => $machineId, ':column_num' => $colNum]);
-        $row       = $lookupColumn->fetch();
-        $productId = ($row && $row['product_id']) ? (int) $row['product_id'] : null;
+        $row         = $lookupColumn->fetch();
+        $productId   = ($row && $row['product_id'])   ? (int)    $row['product_id']   : null;
+        $productName = ($row && $row['product_name']) ? (string) $row['product_name'] : null;
     }
 
     $saleTime = (new DateTime($timestamp))->format('Y-m-d H:i:s');
@@ -137,6 +138,9 @@ foreach ($messages as $message) {
         $decrInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':quantity' => $quantity]);
     }
 
+    // Publish sale event to MQTT if configured (e.g. for split-flap display)
+    mqttPublishSale($machineId, $productName ?? 'Unknown', $amount, $colNum ?? null, $saleTime);
+
     deleteMessage($sqs, $queueUrl, $receiptHandle);
     $processed++;
 
@@ -150,5 +154,40 @@ function deleteMessage(SqsClient $sqs, string $queueUrl, string $receiptHandle):
         $sqs->deleteMessage(['QueueUrl' => $queueUrl, 'ReceiptHandle' => $receiptHandle]);
     } catch (AwsException $e) {
         fwrite(STDERR, '[WARN] deleteMessage failed: ' . $e->getMessage() . PHP_EOL);
+    }
+}
+
+function mqttPublishSale(string $machineId, string $item, float $price, ?string $column, string $timestamp): void {
+    $host = $_ENV['MQTT_HOST'] ?? '';
+    if ($host === '') return; // MQTT not configured, skip silently
+
+    try {
+        $clientId = 'vending-consumer-' . substr(md5(uniqid()), 0, 8);
+        $port     = (int) ($_ENV['MQTT_PORT'] ?? 8883);
+        $useTls   = $port === 8883;
+
+        $mqtt = new \PhpMqtt\Client\MqttClient($host, $port, $clientId);
+
+        $settings = (new \PhpMqtt\Client\ConnectionSettings())
+            ->setUsername($_ENV['MQTT_USER'] ?? '')
+            ->setPassword($_ENV['MQTT_PASS'] ?? '')
+            ->setUseTls($useTls)
+            ->setConnectTimeout(5);
+
+        $mqtt->connect($settings, true);
+        $mqtt->publish(
+            $_ENV['MQTT_TOPIC'] ?? 'vending/sale',
+            json_encode([
+                'machine_id' => $machineId,
+                'item'       => $item,
+                'price'      => $price,
+                'column'     => $column,
+                'timestamp'  => $timestamp,
+            ]),
+            0 // QoS 0 — fire and forget
+        );
+        $mqtt->disconnect();
+    } catch (\Throwable $e) {
+        fwrite(STDERR, '[WARN] MQTT publish failed: ' . $e->getMessage() . PHP_EOL);
     }
 }
