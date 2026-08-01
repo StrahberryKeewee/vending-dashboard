@@ -445,7 +445,14 @@ async function loadColumnMappings(machineId) {
       <td><strong>${escHtml(c.column_num)}</strong></td>
       <td>${escHtml(c.product_name)}</td>
       <td><span class="item-tag" style="background:${CAT_COLORS[c.category] ?? '#e5e7eb'}22;color:${CAT_COLORS[c.category] ?? '#6b7280'}">${escHtml(c.category ?? '')}</span></td>
-      <td style="color:var(--text-muted);font-size:.82rem">${c.capacity ?? '—'}</td>
+      <td>
+        <input class="cap-inline-input" type="number" min="1" max="999"
+          value="${c.capacity ?? ''}" placeholder="—"
+          data-col-id="${c.id}" data-machine="${escHtml(selectedMachineId)}"
+          data-col-num="${escHtml(c.column_num)}" data-product="${escHtml(c.product_name)}"
+          data-category="${escHtml(c.category ?? '')}"
+          onblur="saveCapacityInline(this)" onkeydown="if(event.key==='Enter')this.blur()" />
+      </td>
       <td>
         <button class="btn-delete" onclick="deleteColumnMapping(${c.id})" title="Remove">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -490,6 +497,25 @@ async function deleteColumnMapping(id) {
   try {
     await fetch(`${API_BASE}/machines/columns.php?id=${id}`, { method: 'DELETE' });
     await loadColumnMappings(selectedMachineId);
+  } catch {}
+}
+
+async function saveCapacityInline(input) {
+  const capVal  = input.value.trim();
+  const capacity = capVal !== '' ? parseInt(capVal) || null : null;
+  try {
+    await fetch(`${API_BASE}/machines/columns.php`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        machine_id:   input.dataset.machine,
+        column_num:   input.dataset.colNum,
+        product_name: input.dataset.product,
+        category:     input.dataset.category,
+        capacity,
+      }),
+    });
+    await loadInventory(selectedMachineId);
   } catch {}
 }
 
