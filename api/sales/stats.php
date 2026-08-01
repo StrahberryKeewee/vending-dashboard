@@ -33,12 +33,14 @@ $ratingStmt->execute($mParam);
 $ratingRow = $ratingStmt->fetch();
 
 $topCatStmt = $pdo->prepare(
-    'SELECT p.category, COUNT(*) AS cnt
+    'SELECT COALESCE(mc.category, p.category) AS category,
+            SUM(s.amount * s.quantity)         AS revenue
      FROM   sales s
-     JOIN   products p ON p.id = s.product_id
+     LEFT   JOIN products p        ON p.id = s.product_id
+     LEFT   JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
      WHERE  YEAR(s.sale_time) = YEAR(NOW())' . $mFilter . '
-     GROUP BY p.category
-     ORDER BY cnt DESC
+     GROUP BY category
+     ORDER BY revenue DESC
      LIMIT 1'
 );
 $topCatStmt->execute($mParam);
