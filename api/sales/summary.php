@@ -42,12 +42,13 @@ $growthPercent = $prevTotal > 0
     : 0.0;
 
 $catStmt = $pdo->prepare(
-    'SELECT   p.category,
+    'SELECT   COALESCE(mc.category, p.category) AS category,
               COALESCE(SUM(s.amount * s.quantity), 0) AS revenue
      FROM     sales s
-     JOIN     products p ON p.id = s.product_id
+     LEFT JOIN products p        ON p.id = s.product_id
+     LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
      WHERE    YEAR(s.sale_time) = :year' . $machineFilter . '
-     GROUP BY p.category'
+     GROUP BY category'
 );
 $catStmt->execute(array_merge([':year' => $year], $machineParams));
 $catRows = $catStmt->fetchAll();
