@@ -567,19 +567,25 @@ function renderInventorySummary() {
     lastCountText = 'Never counted — use Record Count to set initial quantities';
   }
 
+  const restockList = needRestock.length > 0
+    ? `<div class="inv-restock-list">${needRestock.map(r => {
+        const qty = parseInt(r.current_qty) || 0;
+        const cap = r.capacity != null ? parseInt(r.capacity) : null;
+        const need = cap !== null ? cap - qty : null;
+        const needStr = need !== null ? `bring ${need}` : 'empty';
+        return `<div class="inv-restock-item"><span class="inv-restock-name">${escHtml(r.product_name)}</span><span class="inv-restock-need">${needStr}</span></div>`;
+      }).join('')}</div>`
+    : '';
+
   const parts = [];
   if (needRestock.length > 0) parts.push(`<div class="inv-summary-item" style="color:#ef4444"><span class="inv-dot" style="background:#ef4444"></span>${needRestock.length} need restocking</div>`);
   if (unknown.length > 0)     parts.push(`<div class="inv-summary-item" style="color:#9ca3af"><span class="inv-dot" style="background:#9ca3af"></span>${unknown.length} uncounted</div>`);
   if (needRestock.length === 0 && unknown.length === 0 && inventoryData.length > 0)
     parts.push(`<div class="inv-summary-item" style="color:#22c55e"><span class="inv-dot inv-dot--ok"></span>All slots stocked</div>`);
 
-  const machineNote = !selectedMachineHasData
-    ? `<div class="inv-machine-note">Manual tracking — record a count each visit to keep this accurate</div>`
-    : '';
-
   el.innerHTML = `
-    ${machineNote}
     <div class="inv-summary-row">${parts.join('')}<div class="inv-summary-item" style="color:var(--text-muted)">${lastCountText}</div></div>
+    ${restockList}
   `;
 }
 
