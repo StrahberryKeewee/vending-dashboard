@@ -63,14 +63,15 @@ foreach ($dowRows as $row) {
 
 // ── Top 5 sellers ─────────────────────────────────────────────────────────────
 $topStmt = $pdo->prepare(
-    'SELECT p.name     AS product_name,
-            p.category,
-            SUM(s.quantity) AS total_qty,
+    'SELECT COALESCE(mc.product_name, p.name) AS product_name,
+            COALESCE(mc.category, p.category) AS category,
+            SUM(s.quantity)            AS total_qty,
             SUM(s.amount * s.quantity) AS total_revenue
      FROM   sales s
-     JOIN   products p ON p.id = s.product_id
+     LEFT   JOIN products p       ON p.id = s.product_id
+     LEFT   JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
      WHERE  s.machine_id = :machine_id
-     GROUP  BY s.product_id, p.name, p.category
+     GROUP  BY s.vend_column, product_name, category
      ORDER  BY total_qty DESC
      LIMIT  5'
 );

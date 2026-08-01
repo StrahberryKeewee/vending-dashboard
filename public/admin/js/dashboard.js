@@ -444,7 +444,7 @@ async function loadColumnMappings(machineId) {
     <tr>
       <td><strong>${escHtml(c.column_num)}</strong></td>
       <td>${escHtml(c.product_name)}</td>
-      <td><span class="item-tag">${escHtml(c.category ?? '')}</span></td>
+      <td><span class="item-tag" style="background:${CAT_COLORS[c.category] ?? '#e5e7eb'}22;color:${CAT_COLORS[c.category] ?? '#6b7280'}">${escHtml(c.category ?? '')}</span></td>
       <td style="color:var(--text-muted);font-size:.82rem">${c.capacity ?? '—'}</td>
       <td>
         <button class="btn-delete" onclick="deleteColumnMapping(${c.id})" title="Remove">
