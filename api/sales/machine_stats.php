@@ -20,7 +20,7 @@ $pdo = Database::connect();
 $hourStmt = $pdo->prepare(
     'SELECT HOUR(sale_time)              AS hour,
             COUNT(*)                     AS txn_count,
-            COALESCE(SUM(amount), 0)     AS revenue
+            COALESCE(SUM(amount * quantity), 0) AS revenue
      FROM   sales
      WHERE  machine_id = :machine_id
      GROUP  BY HOUR(sale_time)
@@ -42,7 +42,7 @@ foreach ($hourRows as $row) {
 $dowStmt = $pdo->prepare(
     'SELECT DAYOFWEEK(sale_time)         AS dow,
             COUNT(*)                     AS txn_count,
-            COALESCE(SUM(amount), 0)     AS revenue
+            COALESCE(SUM(amount * quantity), 0) AS revenue
      FROM   sales
      WHERE  machine_id = :machine_id
      GROUP  BY DAYOFWEEK(sale_time)
@@ -66,7 +66,7 @@ $topStmt = $pdo->prepare(
     'SELECT p.name     AS product_name,
             p.category,
             SUM(s.quantity) AS total_qty,
-            SUM(s.amount)   AS total_revenue
+            SUM(s.amount * s.quantity) AS total_revenue
      FROM   sales s
      JOIN   products p ON p.id = s.product_id
      WHERE  s.machine_id = :machine_id
@@ -91,7 +91,7 @@ $lastMonthStart = (clone $now)->modify('first day of last month')->format('Y-m-d
 $lastMonthEnd   = (clone $now)->modify('last day of last month')->format('Y-m-d');
 
 $periodStmt = $pdo->prepare(
-    'SELECT COALESCE(SUM(amount), 0) AS revenue,
+    'SELECT COALESCE(SUM(amount * quantity), 0) AS revenue,
             COUNT(*)                 AS txn_count
      FROM   sales
      WHERE  machine_id = :machine_id
