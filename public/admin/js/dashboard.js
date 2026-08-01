@@ -593,8 +593,6 @@ function renderInventoryTable() {
       qtyCell = `<div class="inv-qty">
         <span class="inv-status-dot ${dotClass}" title="${dotTitle}"></span>
         <span class="inv-qty-value${isEmpty ? ' empty' : ''}">${qtyStr}${capStr}</span>
-        <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', -1)" ${qty === 0 || neverCounted ? 'disabled' : ''}>−</button>
-        <button class="btn-inv-adj" onclick="quickAdjust('${escHtml(row.column_num)}', 1)">+</button>
       </div>`;
     }
 
