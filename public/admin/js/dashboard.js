@@ -670,16 +670,18 @@ async function saveCount() {
   }));
 
   try {
-    await fetch(`${API_BASE}/inventory/adjust.php`, {
+    const res = await fetch(`${API_BASE}/inventory/adjust.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ machine_id: selectedMachineId, counts, note: 'Manual inventory count' }),
     });
+    if (!res.ok) throw new Error(`Save failed (${res.status})`);
     await loadInventory(selectedMachineId);
     cancelCountMode();
     showToast('Inventory count saved');
-  } catch {
+  } catch (err) {
     showToast('Failed to save count');
+    console.error('[saveCount]', err);
   }
 }
 

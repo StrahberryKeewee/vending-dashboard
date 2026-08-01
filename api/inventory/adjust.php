@@ -24,7 +24,7 @@ $pdo = Database::connect();
 $upsert = $pdo->prepare(
     'INSERT INTO machine_inventory (machine_id, column_num, current_qty)
      VALUES (:machine_id, :column_num, :qty)
-     ON DUPLICATE KEY UPDATE current_qty = :qty'
+     ON DUPLICATE KEY UPDATE current_qty = VALUES(current_qty)'
 );
 
 $log = $pdo->prepare(
