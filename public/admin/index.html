@@ -33,6 +33,13 @@
           <line x1="6"  y1="20" x2="6"  y2="14"/>
         </svg>
       </a>
+      <a href="#items" class="sidebar__link" data-section="items" title="Item Statistics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          <line x1="12" y1="12" x2="12" y2="12.01"/>
+        </svg>
+      </a>
       <a href="#machines" class="sidebar__link" data-section="machines" title="Machines">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="5" y="2" width="14" height="20" rx="2"/>
@@ -155,6 +162,30 @@
     </section>
 
     <!-- Analytics Section -->
+    <!-- Item Statistics Section -->
+    <section class="section hidden" id="section-items">
+      <div class="card">
+        <div class="card__header">
+          <div class="card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            </svg>
+            Item Statistics
+          </div>
+          <button class="btn-refresh" id="refreshItems" title="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
+        <div id="itemStatsList" style="padding: 12px 22px 22px">
+          <p style="color:var(--text-muted);font-size:.85rem">Loading...</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section hidden" id="section-analytics">
 
       <!-- Most Recent Sale -->
