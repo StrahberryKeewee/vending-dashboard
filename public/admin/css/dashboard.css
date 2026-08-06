@@ -1380,6 +1380,8 @@ body {
   background: color-mix(in srgb, var(--accent) calc(var(--cal-intensity, 0) * 0.18%), var(--surface));
 }
 .cal-cell--has-data:hover { border-color: var(--accent); filter: brightness(.97); }
+.cal-cell--best { border-color: #f59e0b !important; box-shadow: 0 0 0 2px #f59e0b44; }
+.cal-cell--best .cal-cell-rev { color: #d97706; }
 
 .cal-cell-day {
   font-size: .78rem;

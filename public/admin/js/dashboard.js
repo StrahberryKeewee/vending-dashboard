@@ -1233,7 +1233,8 @@ async function loadCalendarMonth() {
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('calMonthLabel').textContent = `${MONTHS[calMonth - 1]} ${calYear}`;
 
-  const maxRev = Math.max(...Object.values(calDayData).map(d => d.revenue), 1);
+  const maxRev    = Math.max(...Object.values(calDayData).map(d => d.revenue), 1);
+  const bestDate  = Object.entries(calDayData).sort((a, b) => b[1].revenue - a[1].revenue)[0]?.[0];
 
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
@@ -1250,7 +1251,7 @@ async function loadCalendarMonth() {
     const dateStr = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const info    = calDayData[dateStr];
     const cell    = document.createElement('div');
-    cell.className = 'cal-cell' + (dateStr === today ? ' cal-cell--today' : '') + (info ? ' cal-cell--has-data' : '');
+    cell.className = 'cal-cell' + (dateStr === today ? ' cal-cell--today' : '') + (info ? ' cal-cell--has-data' : '') + (dateStr === bestDate ? ' cal-cell--best' : '');
     cell.dataset.date = dateStr;
 
     if (info) {
