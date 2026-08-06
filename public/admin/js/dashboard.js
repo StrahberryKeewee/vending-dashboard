@@ -959,6 +959,16 @@ function initMachineDetail() {
     btn.title = open ? 'Expand' : 'Collapse';
   });
 
+  // Analytics collapse toggle
+  document.getElementById('analyticsToggle').addEventListener('click', () => {
+    const body = document.getElementById('analyticsCollapse');
+    const btn  = document.getElementById('analyticsCollapseBtn');
+    const open = !body.classList.contains('collapsed');
+    body.classList.toggle('collapsed', open);
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.title = open ? 'Expand' : 'Collapse';
+  });
+
   // Recent sales collapse toggle
   document.getElementById('recentSalesToggle').addEventListener('click', () => {
     const body = document.getElementById('recentSalesBody_wrap');

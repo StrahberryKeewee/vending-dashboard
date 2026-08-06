@@ -397,10 +397,18 @@
 
         <!-- Machine Analytics -->
         <div class="detail-section" id="machineAnalyticsSection">
-          <div class="detail-section__header">
-            <span class="detail-section__title">Sales Analytics</span>
-            <span class="detail-section__hint">Performance breakdown for this machine</span>
+          <div class="detail-section__header detail-section__header--toggle" id="analyticsToggle">
+            <div class="detail-section__header-text">
+              <span class="detail-section__title">Sales Analytics</span>
+              <span class="detail-section__hint">Performance breakdown for this machine</span>
+            </div>
+            <button class="btn-collapse" id="analyticsCollapseBtn" aria-expanded="false" title="Expand">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
           </div>
+          <div class="detail-section__body collapsed" id="analyticsCollapse">
 
           <!-- Period comparison cards -->
           <div class="machine-period-grid" id="machinePeriodGrid">
@@ -469,6 +477,7 @@
             <div id="deadStockList"></div>
           </div>
 
+          </div><!-- /analyticsCollapse -->
         </div>
 
       </div>
