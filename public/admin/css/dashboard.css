@@ -40,7 +40,7 @@
   --shadow:         0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
 }
 
-html { font-size: 15px; overflow-x: hidden; }
+html { font-size: 15px; }
 body { overflow-x: hidden; }
 
 body {
@@ -1232,6 +1232,8 @@ body {
   .main {
     margin-left: 0;
     padding-bottom: 56px;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* Topbar */
@@ -1338,13 +1340,16 @@ body {
     max-width: 100%;
   }
 
-  /* Feedback table — hide Item Purchased and Suggestions columns */
+  /* Feedback table — hide Location and Item Purchased; keep Suggestions visible */
+  #feedbackTable th:nth-child(3),
+  #feedbackTable td:nth-child(3),
   #feedbackTable th:nth-child(4),
-  #feedbackTable td:nth-child(4),
-  #feedbackTable th:nth-child(5),
-  #feedbackTable td:nth-child(5) {
+  #feedbackTable td:nth-child(4) {
     display: none;
   }
+
+  /* Wrap suggestion text on mobile instead of overflowing */
+  .suggestion-text { white-space: normal; font-size: .8rem; }
 
   /* Machines table — hide Building, Floor, and QR URL columns */
   #machinesTable th:nth-child(3),
@@ -1379,22 +1384,6 @@ body {
   }
 
   .cal-month-label { min-width: 0; font-size: 1rem; }
-
-  /* Compact cells — just day + revenue */
-  .cal-cell {
-    min-height: 52px;
-    padding: 5px 4px;
-    border-radius: 6px;
-    gap: 1px;
-  }
-
-  .cal-cell-day { font-size: .68rem; }
-  .cal-cell-rev { font-size: .7rem; }
-  .cal-cell-txn { display: none; }
-
-  .cal-dow-row > div { font-size: .62rem; padding-bottom: 5px; }
-
-  .cal-grid { gap: 3px; }
 
   /* Stack day detail to single column */
   .cal-detail-body {
@@ -1467,11 +1456,18 @@ body {
 .cal-nav-btn:hover { background: var(--bg); }
 .cal-nav-btn svg { width: 16px; height: 16px; }
 
+.cal-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .cal-dow-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   margin-bottom: 6px;
+  min-width: 420px;
 }
+
 .cal-dow-row > div {
   text-align: center;
   font-size: .72rem;
@@ -1486,6 +1482,7 @@ body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
+  min-width: 420px;
 }
 
 .cal-cell {
