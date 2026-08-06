@@ -1053,108 +1053,124 @@ function initNav() {
 
 // ── Item Statistics ───────────────────────────────────────────────────────────
 
-let itemStatsLoaded = false;
+let allItemStats   = [];
+let itemMonthChart = null;
 
 async function loadItemStats() {
-  if (itemStatsLoaded) return;
-  const container = document.getElementById('itemStatsList');
-  container.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem">Loading...</p>';
-
+  if (allItemStats.length) return;
   let data;
   try {
     data = await apiFetch('/sales/item_stats.php');
-  } catch {
-    container.innerHTML = '<p style="color:#ef4444;font-size:.85rem">Failed to load.</p>';
+  } catch { return; }
+
+  allItemStats = data.items ?? [];
+  const sel = document.getElementById('itemSelect');
+  allItemStats.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.product_name;
+    opt.textContent = item.product_name;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('itemSelect').addEventListener('change', async function () {
+  const name = this.value;
+  const detail = document.getElementById('itemDetail');
+  const empty  = document.getElementById('itemEmptyState');
+
+  if (!name) {
+    detail.classList.add('hidden');
+    empty.classList.remove('hidden');
     return;
   }
 
-  const items = data.items ?? [];
-  if (!items.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem">No sales data yet.</p>';
-    return;
+  const item = allItemStats.find(i => i.product_name === name);
+  if (!item) return;
+
+  detail.classList.remove('hidden');
+  empty.classList.add('hidden');
+
+  // Header
+  const cat      = item.category ?? '';
+  const catColor = CAT_COLORS[cat] ?? '#6b7280';
+  document.getElementById('itemDetailName').textContent = item.product_name;
+  const catEl = document.getElementById('itemDetailCat');
+  catEl.textContent = cat;
+  catEl.style.background = `${catColor}22`;
+  catEl.style.color = catColor;
+
+  const firstSold = item.first_sold ? new Date(item.first_sold).toLocaleDateString() : '—';
+  const lastSold  = item.last_sold  ? new Date(item.last_sold).toLocaleDateString()  : '—';
+  const daysActive = item.first_sold
+    ? Math.max(1, Math.ceil((Date.now() - new Date(item.first_sold)) / 86400000))
+    : null;
+  document.getElementById('itemDetailDates').textContent = `First sold ${firstSold}`;
+
+  // KPIs
+  document.getElementById('ikpiQty').textContent   = item.total_qty.toLocaleString();
+  document.getElementById('ikpiTxns').textContent  = `${item.txn_count} transactions`;
+  document.getElementById('ikpiRev').textContent   = formatCurrency(item.total_revenue);
+  document.getElementById('ikpiAvgPrice').textContent = `avg ${formatCurrency(item.avg_price)} each`;
+  document.getElementById('ikpiDaily').textContent = `${item.avg_daily_qty} units`;
+  document.getElementById('ikpiDaysActive').textContent = daysActive ? `over ${daysActive} days` : '';
+  document.getElementById('ikpiLastSold').textContent = lastSold;
+  document.getElementById('ikpiLastSub').textContent  =
+    item.days_since_last !== null ? `${item.days_since_last} days ago` : '';
+
+  // Stock bars
+  const stockEl = document.getElementById('itemStockBars');
+  if (item.stock.length) {
+    stockEl.innerHTML = item.stock.map(s => {
+      const pct   = s.capacity ? Math.min(100, Math.round((s.current_qty / s.capacity) * 100)) : null;
+      const color = pct === null ? '#6b7280' : pct === 0 ? '#ef4444' : pct < 30 ? '#f59e0b' : '#22c55e';
+      const barW  = pct !== null ? pct : 0;
+      const label = s.capacity ? `${s.current_qty} / ${s.capacity}` : `${s.current_qty}`;
+      return `<div class="istock-row">
+        <span class="istock-loc">${escHtml(s.location)}</span>
+        <div class="istock-bar-wrap">
+          <div class="istock-bar-fill" style="width:${barW}%;background:${color}"></div>
+        </div>
+        <span class="istock-label" style="color:${color}">${label}</span>
+      </div>`;
+    }).join('');
+  } else {
+    stockEl.innerHTML = '<p style="color:var(--text-muted);font-size:.82rem;margin:0">No count recorded yet</p>';
   }
 
-  container.innerHTML = items.map((item, i) => {
-    const cat       = item.category ?? '';
-    const catColor  = CAT_COLORS[cat] ?? '#6b7280';
-    const lastSold  = item.last_sold  ? new Date(item.last_sold).toLocaleDateString()  : '—';
-    const firstSold = item.first_sold ? new Date(item.first_sold).toLocaleDateString() : '—';
-    const daysSince = item.days_since_last !== null ? `${item.days_since_last}d ago` : '—';
+  // Monthly chart
+  let monthly = [];
+  try {
+    const detail = await apiFetch(`/sales/item_detail.php?name=${encodeURIComponent(name)}`);
+    monthly = detail.monthly ?? [];
+  } catch {}
 
-    const stockHtml = item.stock.length
-      ? item.stock.map(s => {
-          const capStr = s.capacity !== null ? ` / ${s.capacity}` : '';
-          const pct    = s.capacity ? Math.round((s.current_qty / s.capacity) * 100) : null;
-          const color  = pct === null ? '#6b7280' : pct === 0 ? '#ef4444' : pct < 30 ? '#f59e0b' : '#22c55e';
-          return `<div class="item-stock-row">
-            <span class="item-stock-loc">${escHtml(s.location)}</span>
-            <span class="item-stock-qty" style="color:${color}">${s.current_qty}${capStr}</span>
-          </div>`;
-        }).join('')
-      : '<span style="color:var(--text-muted);font-size:.8rem">No count recorded</span>';
+  const labels   = monthly.map(r => r.month);
+  const qtyData  = monthly.map(r => parseInt(r.qty));
 
-    return `<div class="item-stat-card" id="isc-${i}">
-      <div class="item-stat-header" onclick="toggleItemStat(${i})">
-        <div class="item-stat-left">
-          <span class="item-stat-name">${escHtml(item.product_name)}</span>
-          <span class="item-tag" style="background:${catColor}22;color:${catColor}">${escHtml(cat)}</span>
-        </div>
-        <div class="item-stat-right">
-          <span class="item-stat-pill">${item.total_qty} sold</span>
-          <span class="item-stat-pill item-stat-pill--rev">${formatCurrency(item.total_revenue)}</span>
-          <svg class="item-stat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </div>
-      </div>
-      <div class="item-stat-body collapsed" id="isb-${i}">
-        <div class="item-stat-grid">
-          <div class="item-stat-cell">
-            <span class="item-stat-label">Avg Price</span>
-            <span class="item-stat-value">${formatCurrency(item.avg_price)}</span>
-          </div>
-          <div class="item-stat-cell">
-            <span class="item-stat-label">Transactions</span>
-            <span class="item-stat-value">${item.txn_count}</span>
-          </div>
-          <div class="item-stat-cell">
-            <span class="item-stat-label">Avg / Day</span>
-            <span class="item-stat-value">${item.avg_daily_qty}</span>
-          </div>
-          <div class="item-stat-cell">
-            <span class="item-stat-label">Machines</span>
-            <span class="item-stat-value">${item.machine_count}</span>
-          </div>
-          <div class="item-stat-cell">
-            <span class="item-stat-label">First Sold</span>
-            <span class="item-stat-value">${firstSold}</span>
-          </div>
-          <div class="item-stat-cell">
-            <span class="item-stat-label">Last Sold</span>
-            <span class="item-stat-value">${lastSold} <span style="color:var(--text-muted);font-size:.78rem">(${daysSince})</span></span>
-          </div>
-        </div>
-        <div class="item-stat-stock">
-          <span class="item-stat-label" style="margin-bottom:6px;display:block">Current Stock</span>
-          ${stockHtml}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  itemStatsLoaded = true;
-}
-
-function toggleItemStat(i) {
-  const body    = document.getElementById(`isb-${i}`);
-  const chevron = document.querySelector(`#isc-${i} .item-stat-chevron`);
-  const open    = body.classList.toggle('collapsed');
-  chevron.style.transform = open ? '' : 'rotate(180deg)';
-}
-
-document.getElementById('refreshItems').addEventListener('click', () => {
-  itemStatsLoaded = false;
-  loadItemStats();
+  if (itemMonthChart) itemMonthChart.destroy();
+  const ctx = document.getElementById('itemMonthChart').getContext('2d');
+  itemMonthChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Units Sold',
+        data: qtyData,
+        backgroundColor: `${catColor}99`,
+        borderColor: catColor,
+        borderWidth: 1,
+        borderRadius: 5,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,.06)' } },
+      },
+    },
+  });
 });
 
 function initPeriodToggle() {

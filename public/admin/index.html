@@ -164,25 +164,83 @@
     <!-- Analytics Section -->
     <!-- Item Statistics Section -->
     <section class="section hidden" id="section-items">
-      <div class="card">
-        <div class="card__header">
-          <div class="card__title">
+
+      <!-- Picker -->
+      <div class="card item-picker-card">
+        <div class="item-picker-row">
+          <div class="item-picker-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
               <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
             </svg>
-            Item Statistics
           </div>
-          <button class="btn-refresh" id="refreshItems" title="Refresh">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-          </button>
+          <div class="item-picker-text">
+            <span class="item-picker-title">Item Statistics</span>
+            <span class="item-picker-hint">Select an item to see its full performance breakdown</span>
+          </div>
+          <select id="itemSelect" class="item-select">
+            <option value="">— Select an item —</option>
+          </select>
         </div>
-        <div id="itemStatsList" style="padding: 12px 22px 22px">
-          <p style="color:var(--text-muted);font-size:.85rem">Loading...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div id="itemEmptyState" class="item-empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>
+        <p>Pick an item from the dropdown above</p>
+      </div>
+
+      <!-- Detail panel (hidden until item chosen) -->
+      <div id="itemDetail" class="hidden">
+
+        <!-- Header -->
+        <div class="item-detail-header">
+          <div>
+            <h2 class="item-detail-name" id="itemDetailName"></h2>
+            <span class="item-tag" id="itemDetailCat"></span>
+          </div>
+          <div class="item-detail-dates" id="itemDetailDates"></div>
         </div>
+
+        <!-- KPI row -->
+        <div class="item-kpi-row">
+          <div class="item-kpi-card">
+            <span class="item-kpi-label">Total Sold</span>
+            <span class="item-kpi-value" id="ikpiQty">—</span>
+            <span class="item-kpi-sub" id="ikpiTxns"></span>
+          </div>
+          <div class="item-kpi-card">
+            <span class="item-kpi-label">Total Revenue</span>
+            <span class="item-kpi-value item-kpi-value--green" id="ikpiRev">—</span>
+            <span class="item-kpi-sub" id="ikpiAvgPrice"></span>
+          </div>
+          <div class="item-kpi-card">
+            <span class="item-kpi-label">Avg / Day</span>
+            <span class="item-kpi-value" id="ikpiDaily">—</span>
+            <span class="item-kpi-sub" id="ikpiDaysActive"></span>
+          </div>
+          <div class="item-kpi-card">
+            <span class="item-kpi-label">Last Sale</span>
+            <span class="item-kpi-value" id="ikpiLastSold">—</span>
+            <span class="item-kpi-sub" id="ikpiLastSub"></span>
+          </div>
+        </div>
+
+        <!-- Chart + Stock -->
+        <div class="item-bottom-row">
+          <div class="card item-chart-card">
+            <div class="item-section-title">Monthly Sales</div>
+            <canvas id="itemMonthChart" height="160"></canvas>
+          </div>
+          <div class="card item-stock-card">
+            <div class="item-section-title">Current Stock</div>
+            <div id="itemStockBars"></div>
+          </div>
+        </div>
+
       </div>
     </section>
 
