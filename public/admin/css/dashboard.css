@@ -40,7 +40,8 @@
   --shadow:         0 1px 3px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
 }
 
-html { font-size: 15px; }
+html { font-size: 15px; overflow-x: hidden; }
+body { overflow-x: hidden; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1354,6 +1355,90 @@ body {
   #machinesTable td:nth-child(5) {
     display: none;
   }
+
+  /* Topbar right — keep toggle and live pill on one row, push to end */
+  .topbar__right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .topbar__status {
+    font-size: .7rem;
+    padding: 4px 9px;
+    gap: 5px;
+  }
+
+  /* ── Calendar: mobile ── */
+  .cal-card { padding: 14px; }
+
+  .cal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .cal-month-label { min-width: 0; font-size: 1rem; }
+
+  /* Compact cells — just day + revenue */
+  .cal-cell {
+    min-height: 52px;
+    padding: 5px 4px;
+    border-radius: 6px;
+    gap: 1px;
+  }
+
+  .cal-cell-day { font-size: .68rem; }
+  .cal-cell-rev { font-size: .7rem; }
+  .cal-cell-txn { display: none; }
+
+  .cal-dow-row > div { font-size: .62rem; padding-bottom: 5px; }
+
+  .cal-grid { gap: 3px; }
+
+  /* Stack day detail to single column */
+  .cal-detail-body {
+    grid-template-columns: 1fr;
+  }
+
+  .cal-detail-section + .cal-detail-section {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .cal-detail-section { padding: 16px; }
+
+  /* Hide location column in txn list to save space */
+  .cal-txn-loc { display: none; }
+
+  /* ── Item Statistics: mobile ── */
+  .item-picker-row {
+    padding: 14px 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .item-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* KPI row: 2 columns instead of 4 */
+  .item-kpi-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .item-kpi-card { padding: 14px 14px; }
+
+  .item-kpi-value { font-size: 1.3rem; }
+
+  /* Stack chart + stock panel */
+  .item-bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stock location label narrower */
+  .istock-loc { min-width: 60px; font-size: .75rem; }
 }
 
 /* ── Sales Calendar ──────────────────────────────────────────────────────── */
