@@ -174,7 +174,7 @@ body {
 }
 
 .section.hidden { display: none; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 /* Card */
 .card {
