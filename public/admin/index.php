@@ -216,14 +216,14 @@ $username = $_SERVER['REMOTE_USER']
           </select>
         </div>
 
-        <!-- Scrollable grid wrapper (enables horizontal scroll on mobile) -->
-        <div class="cal-scroll-wrap">
-          <div class="cal-dow-row">
-            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div>
-            <div>Thu</div><div>Fri</div><div>Sat</div>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
+        <!-- Day-of-week headers -->
+        <div class="cal-dow-row">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div>
+          <div>Thu</div><div>Fri</div><div>Sat</div>
         </div>
+
+        <!-- Grid -->
+        <div class="cal-grid" id="calGrid"></div>
 
       </div>
 
