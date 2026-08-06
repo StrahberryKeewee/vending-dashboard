@@ -50,12 +50,12 @@ $decrInventory = $pdo->prepare(
 $logInventory = $pdo->prepare(
     'INSERT INTO inventory_logs (machine_id, column_num, change_type, qty_before, qty_after, qty_change, note)
      SELECT :machine_id, :column_num, \'sale\',
-            current_qty + :quantity,
+            current_qty + :qty_before,
             current_qty,
-            -:quantity,
+            -:qty_change,
             \'Auto from sale\'
      FROM   machine_inventory
-     WHERE  machine_id = :machine_id AND column_num = :column_num'
+     WHERE  machine_id = :machine_id2 AND column_num = :column_num2'
 );
 
 $lookupProduct = $pdo->prepare('SELECT id FROM products WHERE sku = :sku LIMIT 1');
@@ -134,7 +134,7 @@ foreach ($messages as $message) {
 
     // Auto-decrement inventory if this machine+column has a tracked row
     if (($colNum ?? '') !== '' && $insertSale->rowCount() > 0) {
-        $logInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':quantity' => $quantity]);
+        $logInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':qty_before' => $quantity, ':qty_change' => $quantity, ':machine_id2' => $machineId, ':column_num2' => $colNum]);
         $decrInventory->execute([':machine_id' => $machineId, ':column_num' => $colNum, ':quantity' => $quantity]);
     }
 
