@@ -1372,7 +1372,7 @@ body {
   }
 
   /* ── Calendar: mobile ── */
-  /* Cells shrink to fit 7 columns (~42px each on a 375px screen) */
+  /* Date-only cells: 7 columns fit at ~42px each, revenue shown in detail panel */
   .cal-card { padding: 10px; }
 
   .cal-header {
@@ -1384,21 +1384,22 @@ body {
 
   .cal-month-label { min-width: 0; font-size: .95rem; }
 
-  .cal-dow-row { margin-bottom: 4px; }
-  .cal-dow-row > div { font-size: .6rem; padding-bottom: 4px; }
+  .cal-dow-row { margin-bottom: 3px; }
+  .cal-dow-row > div { font-size: .58rem; padding-bottom: 4px; }
 
-  .cal-grid { gap: 2px; }
+  .cal-grid { gap: 3px; }
 
   .cal-cell {
-    min-height: 56px;
-    padding: 4px 3px;
+    min-height: 42px;
+    padding: 5px 2px 2px;
     border-radius: 6px;
-    gap: 2px;
+    gap: 0;
+    align-items: center;
   }
 
-  .cal-cell-day { font-size: .65rem; }
-  .cal-cell-rev { font-size: .68rem; }
-  .cal-cell-txn { display: none; }
+  .cal-cell-day { font-size: .72rem; font-weight: 700; }
+  /* Hide revenue and txn text — tap the cell to see the detail panel */
+  .cal-cell-rev, .cal-cell-txn { display: none; }
 
   /* Stack day detail to single column */
   .cal-detail-body { grid-template-columns: 1fr; }
@@ -1425,11 +1426,7 @@ body {
   .item-kpi-card { padding: 14px; }
   .item-kpi-value { font-size: 1.3rem; }
 
-  /* Stack chart and stock vertically */
-  .item-bottom-row { grid-template-columns: 1fr; }
-
-  /* Let chart card clip properly and canvas fill its container */
-  .item-chart-card { overflow: hidden; }
+  /* Constrain canvas to card width */
   .item-chart-card canvas { max-width: 100% !important; }
 
   .istock-loc { min-width: 60px; font-size: .75rem; }
@@ -1680,10 +1677,10 @@ body {
   color: var(--text-muted);
 }
 
-/* Chart + stock row */
+/* Chart + stock row — always stacked */
 .item-bottom-row {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 .item-chart-card,
