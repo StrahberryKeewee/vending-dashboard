@@ -1047,6 +1047,7 @@ function initNav() {
 
       if (target === 'machines') loadMachines();
       if (target === 'items')    loadItemStats();
+      if (target === 'calendar') initCalendar();
     });
   });
 }
@@ -1172,6 +1173,142 @@ document.getElementById('itemSelect').addEventListener('change', async function 
     },
   });
 });
+
+// ── Sales Calendar ────────────────────────────────────────────────────────────
+
+let calYear      = new Date().getFullYear();
+let calMonth     = new Date().getMonth() + 1;
+let calDayData   = {};
+let calInitDone  = false;
+let calMachineId = '';
+
+async function initCalendar() {
+  if (calInitDone) return;
+  calInitDone = true;
+
+  // Populate machine filter from already-loaded machines
+  const sel = document.getElementById('calMachineFilter');
+  (allMachines ?? []).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.machine_id;
+    opt.textContent = `${m.machine_id} — ${m.location}`;
+    sel.appendChild(opt);
+  });
+
+  sel.addEventListener('change', () => {
+    calMachineId = sel.value;
+    loadCalendarMonth();
+  });
+
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calMonth--;
+    if (calMonth < 1) { calMonth = 12; calYear--; }
+    loadCalendarMonth();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calMonth++;
+    if (calMonth > 12) { calMonth = 1; calYear++; }
+    loadCalendarMonth();
+  });
+  document.getElementById('calDetailClose').addEventListener('click', () => {
+    document.getElementById('calDayDetail').classList.add('hidden');
+  });
+
+  await loadCalendarMonth();
+}
+
+async function loadCalendarMonth() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  document.getElementById('calDayDetail').classList.add('hidden');
+
+  const params = `year=${calYear}&month=${calMonth}` + (calMachineId ? `&machine_id=${encodeURIComponent(calMachineId)}` : '');
+  let data;
+  try {
+    data = await apiFetch(`/sales/calendar_month.php?${params}`);
+  } catch { return; }
+
+  calDayData = data.days ?? {};
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${MONTHS[calMonth - 1]} ${calYear}`;
+
+  const maxRev = Math.max(...Object.values(calDayData).map(d => d.revenue), 1);
+
+  const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Blank cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'cal-cell cal-cell--blank';
+    grid.appendChild(blank);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const info    = calDayData[dateStr];
+    const cell    = document.createElement('div');
+    cell.className = 'cal-cell' + (dateStr === today ? ' cal-cell--today' : '') + (info ? ' cal-cell--has-data' : '');
+    cell.dataset.date = dateStr;
+
+    if (info) {
+      const intensity = Math.round((info.revenue / maxRev) * 100);
+      cell.style.setProperty('--cal-intensity', intensity);
+      cell.innerHTML = `
+        <span class="cal-cell-day">${d}</span>
+        <span class="cal-cell-rev">${formatCurrency(info.revenue)}</span>
+        <span class="cal-cell-txn">${info.txn_count} sale${info.txn_count !== 1 ? 's' : ''}</span>`;
+    } else {
+      cell.innerHTML = `<span class="cal-cell-day">${d}</span>`;
+    }
+
+    cell.addEventListener('click', () => info && openCalDay(dateStr));
+    grid.appendChild(cell);
+  }
+}
+
+async function openCalDay(dateStr) {
+  const panel = document.getElementById('calDayDetail');
+  panel.classList.remove('hidden');
+  document.getElementById('calDetailDate').textContent = new Date(dateStr + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('calDetailSummary').textContent = 'Loading...';
+  document.getElementById('calItemsGrid').innerHTML = '';
+  document.getElementById('calTxnList').innerHTML = '';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const params = `date=${dateStr}` + (calMachineId ? `&machine_id=${encodeURIComponent(calMachineId)}` : '');
+  let data;
+  try {
+    data = await apiFetch(`/sales/day_detail.php?${params}`);
+  } catch { return; }
+
+  const s = data.summary;
+  document.getElementById('calDetailSummary').textContent =
+    `${s.txn_count} transaction${s.txn_count !== 1 ? 's' : ''} · ${formatCurrency(s.revenue)} total · avg ${formatCurrency(s.avg_price)}`;
+
+  // Items grid
+  document.getElementById('calItemsGrid').innerHTML = (data.items ?? []).map(item => {
+    const cat = item.category ?? '';
+    const col = CAT_COLORS[cat] ?? '#6b7280';
+    return `<div class="cal-item-row">
+      <span class="cal-item-name">${escHtml(item.product_name ?? '—')}</span>
+      <span class="item-tag" style="background:${col}22;color:${col}">${escHtml(cat)}</span>
+      <span class="cal-item-qty">${item.qty}×</span>
+      <span class="cal-item-rev">${formatCurrency(item.revenue)}</span>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No items</p>';
+
+  // Transaction log
+  document.getElementById('calTxnList').innerHTML = (data.transactions ?? []).map(t => `
+    <div class="cal-txn-row">
+      <span class="cal-txn-time">${escHtml(t.time)}</span>
+      <span class="cal-txn-name">${escHtml(t.product_name ?? '—')}</span>
+      ${t.location ? `<span class="cal-txn-loc">${escHtml(t.location)}</span>` : ''}
+      <span class="cal-txn-price">${t.quantity > 1 ? `${t.quantity}× ` : ''}${formatCurrency(t.amount)}</span>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No transactions</p>';
+}
 
 function initPeriodToggle() {
   document.querySelectorAll('.period-btn').forEach(btn => {

@@ -1313,6 +1313,144 @@ body {
   }
 }
 
+/* ── Sales Calendar ──────────────────────────────────────────────────────── */
+
+.cal-card { padding: 22px; margin-bottom: 16px; }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.cal-nav { display: flex; align-items: center; gap: 14px; }
+.cal-month-label { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); min-width: 180px; text-align: center; }
+.cal-nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background .15s;
+}
+.cal-nav-btn:hover { background: var(--bg); }
+.cal-nav-btn svg { width: 16px; height: 16px; }
+
+.cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.cal-dow-row > div {
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  padding-bottom: 8px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal-cell {
+  min-height: 80px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  cursor: default;
+  transition: border-color .15s, background .15s;
+  position: relative;
+}
+.cal-cell--blank { background: transparent; border-color: transparent; }
+.cal-cell:not(.cal-cell--blank) { background: var(--surface); border-color: var(--border); }
+.cal-cell--today { border-color: var(--accent) !important; }
+.cal-cell--has-data {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--accent) calc(var(--cal-intensity, 0) * 0.18%), var(--surface));
+}
+.cal-cell--has-data:hover { border-color: var(--accent); filter: brightness(.97); }
+
+.cal-cell-day {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.cal-cell--today .cal-cell-day { color: var(--accent); }
+.cal-cell-rev {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.cal-cell-txn {
+  font-size: .7rem;
+  color: var(--text-muted);
+}
+
+/* Day detail panel */
+.cal-detail-card { padding: 0; overflow: hidden; }
+.cal-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.cal-detail-date { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.cal-detail-summary { font-size: .82rem; color: var(--text-muted); }
+
+.cal-detail-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.cal-detail-section { padding: 20px 24px; }
+.cal-detail-section + .cal-detail-section { border-left: 1px solid var(--border); }
+.cal-detail-section-title {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.cal-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cal-item-row:last-child { border-bottom: none; }
+.cal-item-name { flex: 1; font-size: .84rem; color: var(--text-primary); font-weight: 500; }
+.cal-item-qty  { font-size: .82rem; color: var(--text-muted); }
+.cal-item-rev  { font-size: .84rem; font-weight: 600; color: var(--text-primary); min-width: 50px; text-align: right; }
+
+.cal-txn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .82rem;
+}
+.cal-txn-row:last-child { border-bottom: none; }
+.cal-txn-time  { color: var(--text-muted); min-width: 72px; flex-shrink: 0; }
+.cal-txn-name  { flex: 1; color: var(--text-primary); }
+.cal-txn-loc   { font-size: .75rem; color: var(--text-muted); flex-shrink: 0; }
+.cal-txn-price { font-weight: 600; color: var(--text-primary); min-width: 48px; text-align: right; flex-shrink: 0; }
+
 /* ── Item Statistics ─────────────────────────────────────────────────────── */
 
 .item-picker-card { margin-bottom: 16px; }
