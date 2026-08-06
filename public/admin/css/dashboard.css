@@ -1271,19 +1271,22 @@ body {
     min-width: 0;
   }
 
-  /* Profit grid — single column */
+  /* Profit grid — single column, centered content */
   .profit-grid {
     grid-template-columns: 1fr;
     padding: 16px 16px 18px;
     gap: 20px;
+    justify-items: center;
   }
 
-  /* Donut — remove right border, add bottom border */
+  /* Donut — remove right border, add bottom border, center everything */
   .donut-wrap {
+    width: 100%;
     padding-right: 0;
     padding-bottom: 20px;
     border-right: none;
     border-bottom: 1px solid var(--border);
+    align-items: center;
   }
 
   /* Donut canvas slightly smaller */
@@ -1292,10 +1295,20 @@ body {
     height: 180px;
   }
 
-  /* Trend chart */
+  /* Trend chart — fill full width, center header */
   .trend-wrap {
+    width: 100%;
     padding-left: 0;
     padding-top: 4px;
+    align-items: center;
+  }
+
+  .trend-header { justify-content: center; }
+
+  .trend-wrap canvas {
+    width: 100% !important;
+    height: 200px !important;
+    max-height: 200px;
   }
 
   /* Stats grid — 2 columns */
