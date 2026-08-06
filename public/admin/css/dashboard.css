@@ -1732,6 +1732,28 @@ body {
 /* ── Late mobile overrides (must come after calendar/item-stats base styles) ── */
 @media (max-width: 640px) {
 
+  /* Period toggle: stack below machine select, fill full width */
+  .card__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .period-toggle {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .period-btn { flex: 1; text-align: center; }
+
+  /* Feedback table: let headers wrap so columns stay narrow enough to read */
+  .feedback-table th {
+    white-space: normal;
+    font-size: .68rem;
+  }
+
+  /* Suggestion text: wrap in cell */
+  .suggestion-text { white-space: normal; font-size: .78rem; }
+
   /* Calendar detail panel: stack Items Sold and Transactions vertically */
   .cal-detail-body {
     grid-template-columns: 1fr;
