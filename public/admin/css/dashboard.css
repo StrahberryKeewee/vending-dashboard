@@ -1374,8 +1374,8 @@ body {
 
   /* ── Calendar: mobile ── */
 
-  /* Override card's overflow:clip so the scroll wrapper can actually scroll */
-  .cal-card { padding: 14px; overflow: visible; }
+  /* overflow:hidden (not clip) creates a BFC so the inner scroll-wrap can scroll */
+  .cal-card { padding: 14px; overflow: hidden; }
 
   .cal-header {
     flex-direction: column;
@@ -1387,9 +1387,7 @@ body {
   .cal-month-label { min-width: 0; font-size: 1rem; }
 
   /* Stack day detail to single column */
-  .cal-detail-body {
-    grid-template-columns: 1fr;
-  }
+  .cal-detail-body { grid-template-columns: 1fr; }
 
   .cal-detail-section + .cal-detail-section {
     border-left: none;
@@ -1397,37 +1395,29 @@ body {
   }
 
   .cal-detail-section { padding: 16px; }
-
-  /* Hide location column in txn list to save space */
   .cal-txn-loc { display: none; }
 
   /* ── Item Statistics: mobile ── */
-  .item-picker-row {
-    padding: 14px 16px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
+  .item-picker-row { padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
 
-  .item-select {
-    min-width: 0;
-    width: 100%;
-  }
+  .item-select { min-width: 0; width: 100%; }
 
-  /* KPI row: 2 columns instead of 4 */
-  .item-kpi-row {
-    grid-template-columns: 1fr 1fr;
-  }
+  /* Detail header: wrap name/dates instead of pushing wide */
+  .item-detail-header { flex-wrap: wrap; }
+  .item-detail-dates { white-space: normal; }
 
-  .item-kpi-card { padding: 14px 14px; }
-
+  /* KPI row: 2×2 instead of 4-wide */
+  .item-kpi-row { grid-template-columns: 1fr 1fr; }
+  .item-kpi-card { padding: 14px; }
   .item-kpi-value { font-size: 1.3rem; }
 
-  /* Stack chart + stock panel */
-  .item-bottom-row {
-    grid-template-columns: 1fr;
-  }
+  /* Stack chart and stock vertically */
+  .item-bottom-row { grid-template-columns: 1fr; }
 
-  /* Stock location label narrower */
+  /* Let chart card clip properly and canvas fill its container */
+  .item-chart-card { overflow: hidden; }
+  .item-chart-card canvas { max-width: 100% !important; }
+
   .istock-loc { min-width: 60px; font-size: .75rem; }
 }
 
