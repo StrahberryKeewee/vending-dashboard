@@ -1329,9 +1329,11 @@ document.getElementById('refreshFeedback').addEventListener('click', () => {
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 
+let currentUsername = null;
+
 function applyTheme(dark) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  localStorage.setItem('theme', dark ? 'dark' : 'light');
+  if (currentUsername) localStorage.setItem(`theme_${currentUsername}`, dark ? 'dark' : 'light');
 }
 
 function initTheme() {
@@ -1342,10 +1344,6 @@ function initTheme() {
 }
 
 async function init() {
-  // Apply saved theme immediately to avoid flash
-  const saved = localStorage.getItem('theme');
-  if (saved) applyTheme(saved === 'dark');
-
   initNav();
   initTheme();
   initPeriodToggle();
@@ -1355,13 +1353,17 @@ async function init() {
   await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 
-  // Check logged-in user — force dark mode for travenyarbro if no preference saved
-  if (!saved) {
-    try {
-      const me = await apiFetch('/auth/me.php');
-      if (me.username === 'travenyarbro') applyTheme(true);
-    } catch {}
-  }
+  // Detect user, then apply their saved theme (or account default)
+  try {
+    const me = await apiFetch('/auth/me.php');
+    currentUsername = me.username ?? 'guest';
+    const saved = localStorage.getItem(`theme_${currentUsername}`);
+    if (saved) {
+      applyTheme(saved === 'dark');
+    } else if (currentUsername === 'travenyarbro') {
+      applyTheme(true);
+    }
+  } catch {}
 
   setInterval(() => {
     loadFeedback();
