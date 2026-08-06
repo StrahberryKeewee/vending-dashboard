@@ -1,10 +1,22 @@
-<!DOCTYPE html>
+<?php
+$username = $_SERVER['REMOTE_USER']
+         ?? $_SERVER['PHP_AUTH_USER']
+         ?? (function() {
+                $h = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+                if (preg_match('/Basic\s+(.+)/i', $h, $m)) {
+                    return explode(':', base64_decode($m[1]), 2)[0] ?: null;
+                }
+                return null;
+            })()
+         ?? 'guest';
+?><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vending Machine Dashboard</title>
   <link rel="stylesheet" href="css/dashboard.css" />
+  <script>window.CURRENT_USER = '<?= htmlspecialchars($username, ENT_QUOTES) ?>';</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>

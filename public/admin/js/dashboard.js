@@ -1353,17 +1353,14 @@ async function init() {
   await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 
-  // Detect user, then apply their saved theme (or account default)
-  try {
-    const me = await apiFetch('/auth/me.php');
-    currentUsername = me.username ?? 'guest';
-    const saved = localStorage.getItem(`theme_${currentUsername}`);
-    if (saved) {
-      applyTheme(saved === 'dark');
-    } else if (currentUsername === 'travenyarbro') {
-      applyTheme(true);
-    }
-  } catch {}
+  // Username embedded by PHP at page load — no AJAX needed
+  currentUsername = (typeof window.CURRENT_USER === 'string' && window.CURRENT_USER) ? window.CURRENT_USER : 'guest';
+  const saved = localStorage.getItem(`theme_${currentUsername}`);
+  if (saved) {
+    applyTheme(saved === 'dark');
+  } else if (currentUsername === 'travenyarbro') {
+    applyTheme(true);
+  }
 
   setInterval(() => {
     loadFeedback();
