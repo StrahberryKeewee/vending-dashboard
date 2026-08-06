@@ -1327,14 +1327,41 @@ document.getElementById('refreshFeedback').addEventListener('click', () => {
   showToast('Feedback refreshed');
 });
 
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+
+function initTheme() {
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(!isDark);
+  });
+}
+
 async function init() {
+  // Apply saved theme immediately to avoid flash
+  const saved = localStorage.getItem('theme');
+  if (saved) applyTheme(saved === 'dark');
+
   initNav();
+  initTheme();
   initPeriodToggle();
   initQrModal();
   initMachineDetail();
   initInventory();
   await loadMachinesFromApi();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
+
+  // Check logged-in user — force dark mode for travenyarbro if no preference saved
+  if (!saved) {
+    try {
+      const me = await apiFetch('/auth/me.php');
+      if (me.username === 'travenyarbro') applyTheme(true);
+    } catch {}
+  }
 
   setInterval(() => {
     loadFeedback();
