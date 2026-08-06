@@ -1232,8 +1232,7 @@ body {
   .main {
     margin-left: 0;
     padding-bottom: 56px;
-    max-width: 100vw;
-    overflow-x: hidden;
+    width: 100%;
   }
 
   /* Topbar */
@@ -1374,7 +1373,9 @@ body {
   }
 
   /* ── Calendar: mobile ── */
-  .cal-card { padding: 14px; }
+
+  /* Override card's overflow:clip so the scroll wrapper can actually scroll */
+  .cal-card { padding: 14px; overflow: visible; }
 
   .cal-header {
     flex-direction: column;
