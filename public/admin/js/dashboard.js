@@ -488,6 +488,7 @@ async function addColumnMapping() {
     document.getElementById('newCategory').value    = '';
     document.getElementById('newCapacity').value    = '';
     await loadColumnMappings(selectedMachineId);
+    await loadInventory(selectedMachineId);
   } finally {
     btn.disabled = false;
   }
@@ -497,6 +498,7 @@ async function deleteColumnMapping(id) {
   try {
     await fetch(`${API_BASE}/machines/columns.php?id=${id}`, { method: 'DELETE' });
     await loadColumnMappings(selectedMachineId);
+    await loadInventory(selectedMachineId);
   } catch {}
 }
 
@@ -555,7 +557,7 @@ function renderInventorySummary() {
 
   const latestDate = inventoryData.reduce((best, r) => {
     if (!r.updated_at) return best;
-    const d = new Date(r.updated_at);
+    const d = new Date(r.updated_at.replace(' ', 'T') + 'Z');
     return (!best || d > best) ? d : best;
   }, null);
 
@@ -646,7 +648,7 @@ function renderInventoryTable() {
     if (!row.updated_at) {
       lastCounted = '<span style="color:#9ca3af">Never</span>';
     } else {
-      const days = Math.floor((Date.now() - new Date(row.updated_at)) / 86400000);
+      const days = Math.floor((Date.now() - new Date(row.updated_at.replace(' ', 'T') + 'Z')) / 86400000);
       lastCounted = days === 0 ? 'Today' : days === 1 ? 'Yesterday' : `${days}d ago`;
     }
 
