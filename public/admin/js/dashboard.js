@@ -1297,10 +1297,17 @@ document.getElementById('itemSelect').addEventListener('change', async function 
   // KPIs
   document.getElementById('ikpiQty').textContent   = item.total_qty.toLocaleString();
   document.getElementById('ikpiTxns').textContent  = `${item.txn_count} transactions`;
-  const revVal = profitMode && item.total_profit != null ? item.total_profit : item.total_revenue;
-  document.getElementById('ikpiRev').textContent      = formatCurrency(revVal);
-  document.getElementById('ikpiRevLabel').textContent = profitMode ? 'Total Profit' : 'Total Revenue';
+  document.getElementById('ikpiRev').textContent      = formatCurrency(item.total_revenue);
   document.getElementById('ikpiAvgPrice').textContent = `avg ${formatCurrency(item.avg_price)} each`;
+
+  const hasProfit = item.total_profit > 0;
+  document.getElementById('ikpiProfit').textContent = hasProfit ? formatCurrency(item.total_profit) : '—';
+  if (hasProfit && item.total_revenue > 0) {
+    const pct = (item.total_profit / item.total_revenue * 100).toFixed(1);
+    document.getElementById('ikpiProfitSub').textContent = `${pct}% of revenue`;
+  } else {
+    document.getElementById('ikpiProfitSub').textContent = 'no pricing data';
+  }
 
   const margin = item.profit_margin_pct;
   document.getElementById('ikpiMargin').textContent = margin != null ? `${margin}%` : '—';

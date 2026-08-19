@@ -115,7 +115,7 @@ $items = [
     ['Erasers',                2.00, 1.26],  // = Pink Eraser
     ['Notebooks',              1.50, 0.89],  // = Pocket Notebook
     ['Bar Soap',               1.50, 0.97],  // = Body Soap
-    ['Toothbrush & Paste',     3.50, 1.15],
+    ['Toothbrush & Paste',     2.25, 1.15],
     ['Laundry Combo',          3.00, 1.11],
 ];
 
