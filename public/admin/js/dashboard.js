@@ -1126,8 +1126,16 @@ async function loadProfitAnalysis() {
 }
 
 function renderProfitAnalysis() {
-  const priced   = allItemStats.filter(i => i.profit_margin_pct != null);
-  const unpriced = allItemStats.filter(i => i.profit_margin_pct == null);
+  const priced = allItemStats.filter(i => i.profit_margin_pct != null);
+
+  // ── Summary strip ──────────────────────────────────────────────────────
+  const totalRev    = allItemStats.reduce((s, i) => s + (i.total_revenue ?? 0), 0);
+  const totalProfit = priced.reduce((s, i) => s + (i.total_profit ?? 0), 0);
+  const overallMargin = totalRev > 0 ? (totalProfit / totalRev * 100).toFixed(1) : null;
+  document.getElementById('profitSumRevenue').textContent = formatCurrency(totalRev);
+  document.getElementById('profitSumProfit').textContent  = formatCurrency(totalProfit);
+  document.getElementById('profitSumMargin').textContent  = overallMargin != null ? `${overallMargin}%` : '—';
+  document.getElementById('profitSumItems').textContent   = `${priced.length} / ${allItemStats.length}`;
 
   // ── Top 5 by margin % ──────────────────────────────────────────────────
   const topMargin = [...priced].sort((a, b) => b.profit_margin_pct - a.profit_margin_pct).slice(0, 5);
@@ -1167,17 +1175,49 @@ function renderProfitAnalysis() {
     </div>`;
   }).join('') || '<p style="color:var(--text-muted);padding:16px">No profit data yet</p>';
 
-  // ── Missing pricing data ────────────────────────────────────────────────
-  const badge = document.getElementById('profitMissingBadge');
-  badge.textContent = unpriced.length ? unpriced.length : '';
-  badge.style.display = unpriced.length ? '' : 'none';
+  // ── Top 5 by profit per unit sold ─────────────────────────────────────
+  const perUnit = priced
+    .filter(i => i.total_qty > 0)
+    .map(i => ({ ...i, profit_per_unit: i.total_profit / i.total_qty }))
+    .sort((a, b) => b.profit_per_unit - a.profit_per_unit)
+    .slice(0, 5);
+  document.getElementById('profitPerUnitBody').innerHTML = perUnit.length
+    ? perUnit.map(i => {
+        const col = CAT_COLORS[i.category ?? ''] ?? '#6b7280';
+        const tag = `<span class="item-tag" style="background:${col}22;color:${col}">${escHtml(i.category ?? '')}</span>`;
+        return `<tr>
+          <td><strong>${escHtml(i.product_name)}</strong></td>
+          <td>${tag}</td>
+          <td><strong style="color:#22c55e">${formatCurrency(i.profit_per_unit)}</strong></td>
+          <td>${i.total_qty.toLocaleString()}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
 
-  document.getElementById('profitMissingList').innerHTML = unpriced.length
-    ? `<p class="profit-missing-note">These items have no matching entry in the pricing table — profit shows as $0 everywhere. Check that the product name in Column Mapping exactly matches what's in the pricing data.</p>
-       <div class="profit-missing-chips">${unpriced.map(i =>
-         `<span class="profit-missing-chip">${escHtml(i.product_name)}</span>`
-       ).join('')}</div>`
-    : '<p style="color:#22c55e;padding:16px;font-size:.85rem">All items have pricing data.</p>';
+  // ── High volume, low margin ────────────────────────────────────────────
+  // Items with 5+ units sold but margin in bottom third of priced items
+  const marginThreshold = priced.length
+    ? [...priced].sort((a, b) => a.profit_margin_pct - b.profit_margin_pct)[Math.floor(priced.length / 3)]?.profit_margin_pct ?? 40
+    : 40;
+  const hvlm = priced
+    .filter(i => i.total_qty >= 5 && i.profit_margin_pct <= marginThreshold)
+    .sort((a, b) => b.total_qty - a.total_qty)
+    .slice(0, 5);
+  // "Lost potential" = what profit would be at median margin vs actual
+  const medianMargin = priced.length
+    ? [...priced].sort((a, b) => a.profit_margin_pct - b.profit_margin_pct)[Math.floor(priced.length / 2)]?.profit_margin_pct ?? 50
+    : 50;
+  document.getElementById('profitHvlmBody').innerHTML = hvlm.length
+    ? hvlm.map(i => {
+        const potential = i.total_revenue * (medianMargin / 100) - i.total_profit;
+        return `<tr>
+          <td><strong>${escHtml(i.product_name)}</strong></td>
+          <td>${i.total_qty.toLocaleString()}</td>
+          <td><strong style="color:#f59e0b">${i.profit_margin_pct}%</strong></td>
+          <td style="color:#ef4444">${formatCurrency(Math.max(0, potential))}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="table-loading" style="color:#22c55e">All high-volume items have strong margins</td></tr>';
 }
 
 function profitRankRow(item, primary) {
@@ -1262,19 +1302,8 @@ document.getElementById('itemSelect').addEventListener('change', async function 
   document.getElementById('ikpiRevLabel').textContent = profitMode ? 'Total Profit' : 'Total Revenue';
   document.getElementById('ikpiAvgPrice').textContent = `avg ${formatCurrency(item.avg_price)} each`;
 
-  // Profit KPIs (always visible)
-  const hasProfit = item.total_profit > 0;
-  document.getElementById('ikpiProfit').textContent = hasProfit ? formatCurrency(item.total_profit) : '—';
-  if (hasProfit && item.total_revenue > 0) {
-    const pct = (item.total_profit / item.total_revenue * 100).toFixed(1);
-    document.getElementById('ikpiProfitSub').textContent = `${pct}% of revenue`;
-  } else {
-    document.getElementById('ikpiProfitSub').textContent = 'No pricing data';
-  }
   const margin = item.profit_margin_pct;
   document.getElementById('ikpiMargin').textContent = margin != null ? `${margin}%` : '—';
-  document.getElementById('ikpiDaily').textContent = `${item.avg_daily_qty} units`;
-  document.getElementById('ikpiDaysActive').textContent = daysActive ? `over ${daysActive} days` : '';
   document.getElementById('ikpiLastSold').textContent = lastSold;
   document.getElementById('ikpiLastSub').textContent  =
     item.days_since_last !== null ? `${item.days_since_last} days ago` : '';
@@ -1403,9 +1432,8 @@ function renderCalendar() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  const valueKey = profitMode ? 'profit' : 'revenue';
-  const maxVal    = Math.max(...Object.values(calDayData).map(d => d[valueKey] ?? d.revenue), 1);
-  const bestDate  = Object.entries(calDayData).sort((a, b) => (b[1][valueKey] ?? b[1].revenue) - (a[1][valueKey] ?? a[1].revenue))[0]?.[0];
+  const maxVal    = Math.max(...Object.values(calDayData).map(d => d.revenue ?? 0), 1);
+  const bestDate  = Object.entries(calDayData).sort((a, b) => (b[1].revenue ?? 0) - (a[1].revenue ?? 0))[0]?.[0];
 
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
@@ -1425,7 +1453,7 @@ function renderCalendar() {
     cell.dataset.date = dateStr;
 
     if (info) {
-      const val = info[valueKey] ?? info.revenue;
+      const val = info.revenue ?? 0;
       const intensity = Math.round((val / maxVal) * 100);
       cell.style.setProperty('--cal-intensity', intensity);
       cell.innerHTML = `
@@ -1457,31 +1485,28 @@ async function openCalDay(dateStr) {
   } catch { return; }
 
   const s = data.summary;
-  const sumVal = profitMode && s.profit != null ? s.profit : s.revenue;
   document.getElementById('calDetailSummary').textContent =
-    `${s.txn_count} transaction${s.txn_count !== 1 ? 's' : ''} · ${formatCurrency(sumVal)} ${profitMode ? 'profit' : 'total'} · avg ${formatCurrency(s.avg_price)}`;
+    `${s.txn_count} transaction${s.txn_count !== 1 ? 's' : ''} · ${formatCurrency(s.revenue)} total · avg ${formatCurrency(s.avg_price)}`;
 
   // Items grid
   document.getElementById('calItemsGrid').innerHTML = (data.items ?? []).map(item => {
     const cat = item.category ?? '';
     const col = CAT_COLORS[cat] ?? '#6b7280';
-    const itemVal = profitMode && item.profit != null ? item.profit : item.revenue;
     return `<div class="cal-item-row">
       <span class="cal-item-name">${escHtml(item.product_name ?? '—')}</span>
       <span class="item-tag" style="background:${col}22;color:${col}">${escHtml(cat)}</span>
       <span class="cal-item-qty">${item.qty}×</span>
-      <span class="cal-item-rev">${formatCurrency(itemVal)}</span>
+      <span class="cal-item-rev">${formatCurrency(item.revenue)}</span>
     </div>`;
   }).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No items</p>';
 
   // Transaction log
   document.getElementById('calTxnList').innerHTML = (data.transactions ?? []).map(t => {
-    const txnVal = profitMode && t.profit != null ? t.profit : t.amount;
     return `<div class="cal-txn-row">
       <span class="cal-txn-time">${escHtml(t.time)}</span>
       <span class="cal-txn-name">${escHtml(t.product_name ?? '—')}</span>
       ${t.location ? `<span class="cal-txn-loc">${escHtml(t.location)}</span>` : ''}
-      <span class="cal-txn-price">${t.quantity > 1 ? `${t.quantity}× ` : ''}${formatCurrency(txnVal)}</span>
+      <span class="cal-txn-price">${t.quantity > 1 ? `${t.quantity}× ` : ''}${formatCurrency(t.amount)}</span>
     </div>`;
   }).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No transactions</p>';
 }

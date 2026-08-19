@@ -322,19 +322,9 @@ $username = $_SERVER['REMOTE_USER']
             <span class="item-kpi-sub" id="ikpiAvgPrice"></span>
           </div>
           <div class="item-kpi-card">
-            <span class="item-kpi-label">Total Profit</span>
-            <span class="item-kpi-value item-kpi-value--green" id="ikpiProfit">—</span>
-            <span class="item-kpi-sub" id="ikpiProfitSub"></span>
-          </div>
-          <div class="item-kpi-card">
             <span class="item-kpi-label">Profit Margin</span>
             <span class="item-kpi-value" id="ikpiMargin">—</span>
             <span class="item-kpi-sub">net profit per sale</span>
-          </div>
-          <div class="item-kpi-card">
-            <span class="item-kpi-label">Avg / Day</span>
-            <span class="item-kpi-value" id="ikpiDaily">—</span>
-            <span class="item-kpi-sub" id="ikpiDaysActive"></span>
           </div>
           <div class="item-kpi-card">
             <span class="item-kpi-label">Last Sale</span>
@@ -432,6 +422,26 @@ $username = $_SERVER['REMOTE_USER']
         <h2 class="section-title">Profit Analysis</h2>
       </div>
 
+      <!-- Summary strip -->
+      <div class="card profit-summary-strip">
+        <div class="profit-summary-kpi">
+          <span class="profit-summary-label">Total Revenue</span>
+          <span class="profit-summary-value" id="profitSumRevenue">—</span>
+        </div>
+        <div class="profit-summary-kpi">
+          <span class="profit-summary-label">Total Profit</span>
+          <span class="profit-summary-value profit-summary-value--green" id="profitSumProfit">—</span>
+        </div>
+        <div class="profit-summary-kpi">
+          <span class="profit-summary-label">Overall Margin</span>
+          <span class="profit-summary-value" id="profitSumMargin">—</span>
+        </div>
+        <div class="profit-summary-kpi">
+          <span class="profit-summary-label">Items w/ Pricing</span>
+          <span class="profit-summary-value" id="profitSumItems">—</span>
+        </div>
+      </div>
+
       <!-- Top row: top margin + top total profit -->
       <div class="profit-analysis-grid">
 
@@ -491,16 +501,32 @@ $username = $_SERVER['REMOTE_USER']
 
       </div>
 
-      <!-- Missing pricing data (temporary) -->
-      <div class="card" id="profitMissingCard">
-        <div class="card__header">
-          <div class="card__title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Items Missing Pricing Data
+      <!-- Profit per unit + High-volume low-margin -->
+      <div class="profit-analysis-grid">
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Top 5 — Profit per Unit Sold
+            </div>
           </div>
-          <span class="badge badge--warn" id="profitMissingBadge"></span>
+          <table class="profit-rank-table">
+            <thead><tr><th>Item</th><th>Category</th><th>$/Unit</th><th>Total Sold</th></tr></thead>
+            <tbody id="profitPerUnitBody"></tbody>
+          </table>
         </div>
-        <div id="profitMissingList" class="profit-missing-list"></div>
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              High Volume, Low Margin
+            </div>
+          </div>
+          <table class="profit-rank-table">
+            <thead><tr><th>Item</th><th>Units</th><th>Margin</th><th>Lost Potential</th></tr></thead>
+            <tbody id="profitHvlmBody"></tbody>
+          </table>
+        </div>
       </div>
 
     </section>

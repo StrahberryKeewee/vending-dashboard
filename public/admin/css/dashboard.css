@@ -1918,3 +1918,47 @@ body {
   .profit-analysis-grid { grid-template-columns: 1fr; }
   .profit-cat-row { grid-template-columns: 100px 1fr 70px; }
 }
+
+/* ── Profit Summary Strip ───────────────────────────────────────────────── */
+
+.profit-summary-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 20px 24px;
+  gap: 12px;
+}
+
+.profit-summary-kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.profit-summary-kpi + .profit-summary-kpi {
+  border-left: 1px solid var(--border);
+}
+
+.profit-summary-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+}
+
+.profit-summary-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.profit-summary-value--green { color: #22c55e; }
+
+@media (max-width: 640px) {
+  .profit-summary-strip { flex-wrap: wrap; }
+  .profit-summary-kpi { flex: 1 1 40%; }
+  .profit-summary-kpi + .profit-summary-kpi { border-left: none; }
+}
