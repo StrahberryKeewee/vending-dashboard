@@ -81,6 +81,42 @@ $items = [
     ['Liners',               0.75, 0.34],
     ['Hygiene kits',         2.00, 1.00],
     ['Tide Pods',            1.50, 1.14],
+
+    // Alternate names / aliases that appear in sales data
+    // AMC machine aliases
+    ['Coca Cola',              1.25, 0.66],  // = Coke
+    ['Doritos Ranch',          1.25, 0.81],  // = Doritos Cool Ranch
+    ['Doritos Regular',        1.25, 0.81],  // = Doritos Nacho Cheese
+    ['Toast Cheese Cracker',   1.25, 0.98],  // = Toast Chee Cracker
+    ['Toast PB Cracker',       1.25, 0.98],  // = Toast Chee PB Cracker
+    ['Cheez Itz',              1.25, 0.85],  // = Cheez-It
+    ['Kars Trail Mix',         1.25, 0.64],  // = Trail Mix
+    ['Bear Claw',              1.75, 0.61],  // = Cloverhill Cherry Bearclaw
+    ['Ruffles S and C',        1.25, 0.81],  // = Ruffles Sour Cream and Onion
+    ['MM',                     2.00, 0.91],  // = M&Ms
+    ['Peanut MM',              2.00, 0.91],  // = Peanut M&Ms
+    ['Honeybuns',              1.75, 0.94],  // = Cloverhill Honey Bun
+    ['Hot Fries',              1.25, 0.72],  // = Chesters Hot Fries
+    ['Oreos',                  2.00, 0.91],  // cookie tier, same margin as candy
+    // Union machine aliases
+    ['AA Batteries',           2.50, 1.29],  // = Batteries - AA
+    ['AAA Batteries',          2.00, 1.20],  // = Batteries - AAA
+    ['9V Batteries',           2.50, 1.11],  // = Batteries - 9V
+    ['Sharpies',               2.50, 1.13],  // = Permament markers
+    ['Band-Aids',              1.50, 0.53],  // = Bandaids
+    ['Sticky Notes',           1.25, 0.88],  // = Yellow Sticky Notes
+    ['Highlighters',           2.00, 1.29],  // = Yellow Highlighters
+    ['Deodorant',              2.00, 0.88],  // = Deorderant
+    ['Regular Flow Tampons',   0.75, 0.31],  // = Tampons
+    ['Super Flow Tampons',     0.75, 0.31],  // = Tampons
+    ['General Health Care Kit',2.00, 1.00],  // = Hygiene kits
+    ['Razor',                  1.50, 1.19],  // = Razors
+    ['Dry Erase Markers',      2.00, 1.44],  // = Dry erase marker
+    ['Erasers',                2.00, 1.26],  // = Pink Eraser
+    ['Notebooks',              1.50, 0.89],  // = Pocket Notebook
+    ['Bar Soap',               1.50, 0.97],  // = Body Soap
+    ['Toothbrush & Paste',     3.50, 1.75],  // combo; toothpaste $2.25 + brush
+    ['Laundry Combo',          3.00, 1.50],  // Tide Pods + dryer sheet combo
 ];
 
 $stmt = $pdo->prepare(
