@@ -1109,8 +1109,94 @@ function initNav() {
       if (target === 'machines') loadMachines();
       if (target === 'items')    loadItemStats();
       if (target === 'calendar') initCalendar();
+      if (target === 'profit')   loadProfitAnalysis();
     });
   });
+}
+
+// ── Profit Analysis ───────────────────────────────────────────────────────────
+
+let profitAnalysisLoaded = false;
+
+async function loadProfitAnalysis() {
+  if (!allItemStats.length) {
+    await loadItemStats();
+  }
+  renderProfitAnalysis();
+}
+
+function renderProfitAnalysis() {
+  const priced   = allItemStats.filter(i => i.profit_margin_pct != null);
+  const unpriced = allItemStats.filter(i => i.profit_margin_pct == null);
+
+  // ── Top 5 by margin % ──────────────────────────────────────────────────
+  const topMargin = [...priced].sort((a, b) => b.profit_margin_pct - a.profit_margin_pct).slice(0, 5);
+  document.getElementById('profitTopMarginBody').innerHTML = topMargin.length
+    ? topMargin.map(i => profitRankRow(i, 'margin')).join('')
+    : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
+
+  // ── Top 5 by total profit ───────────────────────────────────────────────
+  const topTotal = [...priced].sort((a, b) => b.total_profit - a.total_profit).slice(0, 5);
+  document.getElementById('profitTopTotalBody').innerHTML = topTotal.length
+    ? topTotal.map(i => profitRankRow(i, 'total')).join('')
+    : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
+
+  // ── Bottom 5 by margin % ───────────────────────────────────────────────
+  const botMargin = [...priced].sort((a, b) => a.profit_margin_pct - b.profit_margin_pct).slice(0, 5);
+  document.getElementById('profitBotMarginBody').innerHTML = botMargin.length
+    ? botMargin.map(i => profitRankRow(i, 'margin')).join('')
+    : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
+
+  // ── Profit by category ─────────────────────────────────────────────────
+  const catMap = {};
+  allItemStats.forEach(i => {
+    const cat = i.category ?? 'Other';
+    catMap[cat] = (catMap[cat] ?? 0) + i.total_profit;
+  });
+  const catEntries = Object.entries(catMap).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const maxCat = catEntries[0]?.[1] ?? 1;
+  document.getElementById('profitCategoryBars').innerHTML = catEntries.map(([cat, profit]) => {
+    const color = CAT_COLORS[cat] ?? '#6b7280';
+    const pct   = Math.round(profit / maxCat * 100);
+    return `<div class="profit-cat-row">
+      <span class="profit-cat-label">${escHtml(cat)}</span>
+      <div class="profit-cat-bar-wrap">
+        <div class="profit-cat-bar" style="width:${pct}%;background:${color}"></div>
+      </div>
+      <span class="profit-cat-value">${formatCurrency(profit)}</span>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-muted);padding:16px">No profit data yet</p>';
+
+  // ── Missing pricing data ────────────────────────────────────────────────
+  const badge = document.getElementById('profitMissingBadge');
+  badge.textContent = unpriced.length ? unpriced.length : '';
+  badge.style.display = unpriced.length ? '' : 'none';
+
+  document.getElementById('profitMissingList').innerHTML = unpriced.length
+    ? `<p class="profit-missing-note">These items have no matching entry in the pricing table — profit shows as $0 everywhere. Check that the product name in Column Mapping exactly matches what's in the pricing data.</p>
+       <div class="profit-missing-chips">${unpriced.map(i =>
+         `<span class="profit-missing-chip">${escHtml(i.product_name)}</span>`
+       ).join('')}</div>`
+    : '<p style="color:#22c55e;padding:16px;font-size:.85rem">All items have pricing data.</p>';
+}
+
+function profitRankRow(item, primary) {
+  const col = CAT_COLORS[item.category ?? ''] ?? '#6b7280';
+  const tag = `<span class="item-tag" style="background:${col}22;color:${col}">${escHtml(item.category ?? '')}</span>`;
+  if (primary === 'margin') {
+    return `<tr>
+      <td><strong>${escHtml(item.product_name)}</strong></td>
+      <td>${tag}</td>
+      <td><strong style="color:#22c55e">${item.profit_margin_pct}%</strong></td>
+      <td>${formatCurrency(item.total_profit)}</td>
+    </tr>`;
+  }
+  return `<tr>
+    <td><strong>${escHtml(item.product_name)}</strong></td>
+    <td>${tag}</td>
+    <td><strong style="color:#22c55e">${formatCurrency(item.total_profit)}</strong></td>
+    <td>${item.profit_margin_pct != null ? item.profit_margin_pct + '%' : '—'}</td>
+  </tr>`;
 }
 
 // ── Item Statistics ───────────────────────────────────────────────────────────

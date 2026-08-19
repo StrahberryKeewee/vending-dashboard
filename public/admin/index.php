@@ -60,6 +60,12 @@ $username = $_SERVER['REMOTE_USER']
           <line x1="12" y1="12" x2="12" y2="12.01"/>
         </svg>
       </a>
+      <a href="#profit" class="sidebar__link" data-section="profit" title="Profit Analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </a>
       <a href="#machines" class="sidebar__link" data-section="machines" title="Machines">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="5" y="2" width="14" height="20" rx="2"/>
@@ -415,6 +421,86 @@ $username = $_SERVER['REMOTE_USER']
             <span class="stat-card__value" id="statAvgRating">--</span>
           </div>
         </div>
+      </div>
+
+    </section>
+
+    <!-- Profit Analysis Section -->
+    <section class="section hidden" id="section-profit">
+
+      <div class="section-header">
+        <h2 class="section-title">Profit Analysis</h2>
+      </div>
+
+      <!-- Top row: top margin + top total profit -->
+      <div class="profit-analysis-grid">
+
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              Top 5 — Profit Margin %
+            </div>
+          </div>
+          <table class="profit-rank-table" id="profitTopMarginTable">
+            <thead><tr><th>Item</th><th>Category</th><th>Margin</th><th>Total Profit</th></tr></thead>
+            <tbody id="profitTopMarginBody"><tr class="table-loading"><td colspan="4">Loading…</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Top 5 — Total Profit Generated
+            </div>
+          </div>
+          <table class="profit-rank-table" id="profitTopTotalTable">
+            <thead><tr><th>Item</th><th>Category</th><th>Total Profit</th><th>Margin</th></tr></thead>
+            <tbody id="profitTopTotalBody"><tr class="table-loading"><td colspan="4">Loading…</td></tr></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Bottom row: lowest margin + category breakdown -->
+      <div class="profit-analysis-grid">
+
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+              Bottom 5 — Profit Margin %
+            </div>
+          </div>
+          <table class="profit-rank-table" id="profitBotMarginTable">
+            <thead><tr><th>Item</th><th>Category</th><th>Margin</th><th>Total Profit</th></tr></thead>
+            <tbody id="profitBotMarginBody"><tr class="table-loading"><td colspan="4">Loading…</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card__header">
+            <div class="card__title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              Profit by Category
+            </div>
+          </div>
+          <div id="profitCategoryBars" class="profit-cat-bars"></div>
+        </div>
+
+      </div>
+
+      <!-- Missing pricing data (temporary) -->
+      <div class="card" id="profitMissingCard">
+        <div class="card__header">
+          <div class="card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Items Missing Pricing Data
+          </div>
+          <span class="badge badge--warn" id="profitMissingBadge"></span>
+        </div>
+        <div id="profitMissingList" class="profit-missing-list"></div>
       </div>
 
     </section>
