@@ -1172,26 +1172,6 @@ function renderProfitAnalysis() {
     ? botMargin.map(i => profitRankRow(i, 'margin')).join('')
     : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
 
-  // ── Profit by category ─────────────────────────────────────────────────
-  const catMap = {};
-  profitItems.forEach(i => {
-    const cat = i.category ?? 'Other';
-    catMap[cat] = (catMap[cat] ?? 0) + i.total_profit;
-  });
-  const catEntries = Object.entries(catMap).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-  const maxCat = catEntries[0]?.[1] ?? 1;
-  document.getElementById('profitCategoryBars').innerHTML = catEntries.map(([cat, profit]) => {
-    const color = CAT_COLORS[cat] ?? '#6b7280';
-    const pct   = Math.round(profit / maxCat * 100);
-    return `<div class="profit-cat-row">
-      <span class="profit-cat-label">${escHtml(cat)}</span>
-      <div class="profit-cat-bar-wrap">
-        <div class="profit-cat-bar" style="width:${pct}%;background:${color}"></div>
-      </div>
-      <span class="profit-cat-value">${formatCurrency(profit)}</span>
-    </div>`;
-  }).join('') || '<p style="color:var(--text-muted);padding:16px">No profit data yet</p>';
-
   // ── Top 5 by profit per unit sold ─────────────────────────────────────
   const perUnit = priced
     .filter(i => i.total_qty > 0)
@@ -1211,30 +1191,6 @@ function renderProfitAnalysis() {
       }).join('')
     : '<tr><td colspan="4" class="table-loading">No data</td></tr>';
 
-  // ── High volume, low margin ────────────────────────────────────────────
-  // Items with 5+ units sold but margin in bottom third of priced items
-  const marginThreshold = priced.length
-    ? [...priced].sort((a, b) => a.profit_margin_pct - b.profit_margin_pct)[Math.floor(priced.length / 3)]?.profit_margin_pct ?? 40
-    : 40;
-  const hvlm = priced
-    .filter(i => i.total_qty >= 5 && i.profit_margin_pct <= marginThreshold)
-    .sort((a, b) => b.total_qty - a.total_qty)
-    .slice(0, 5);
-  // "Lost potential" = what profit would be at median margin vs actual
-  const medianMargin = priced.length
-    ? [...priced].sort((a, b) => a.profit_margin_pct - b.profit_margin_pct)[Math.floor(priced.length / 2)]?.profit_margin_pct ?? 50
-    : 50;
-  document.getElementById('profitHvlmBody').innerHTML = hvlm.length
-    ? hvlm.map(i => {
-        const potential = i.total_revenue * (medianMargin / 100) - i.total_profit;
-        return `<tr>
-          <td><strong>${escHtml(i.product_name)}</strong></td>
-          <td>${i.total_qty.toLocaleString()}</td>
-          <td><strong style="color:#f59e0b">${i.profit_margin_pct}%</strong></td>
-          <td style="color:#ef4444">${formatCurrency(Math.max(0, potential))}</td>
-        </tr>`;
-      }).join('')
-    : '<tr><td colspan="4" class="table-loading" style="color:#22c55e">All high-volume items have strong margins</td></tr>';
 }
 
 function profitRankRow(item, primary) {

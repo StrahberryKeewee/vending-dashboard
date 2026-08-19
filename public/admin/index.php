@@ -497,20 +497,6 @@ $username = $_SERVER['REMOTE_USER']
         <div class="card">
           <div class="card__header">
             <div class="card__title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-              Profit by Category
-            </div>
-          </div>
-          <div id="profitCategoryBars" class="profit-cat-bars"></div>
-        </div>
-
-      </div>
-
-      <!-- Profit per unit + High-volume low-margin -->
-      <div class="profit-analysis-grid">
-        <div class="card">
-          <div class="card__header">
-            <div class="card__title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               Top 5 — Profit per Unit Sold
             </div>
@@ -520,18 +506,7 @@ $username = $_SERVER['REMOTE_USER']
             <tbody id="profitPerUnitBody"></tbody>
           </table>
         </div>
-        <div class="card">
-          <div class="card__header">
-            <div class="card__title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              High Volume, Low Margin
-            </div>
-          </div>
-          <table class="profit-rank-table">
-            <thead><tr><th>Item</th><th>Units</th><th>Margin</th><th>Lost Potential</th></tr></thead>
-            <tbody id="profitHvlmBody"></tbody>
-          </table>
-        </div>
+
       </div>
 
     </section>
