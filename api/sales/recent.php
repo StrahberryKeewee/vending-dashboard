@@ -27,7 +27,7 @@ $stmt = $pdo->prepare(
      FROM   sales s
      LEFT JOIN products p         ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-     LEFT JOIN product_pricing pp ON pp.product_name = COALESCE(mc.product_name, p.name)
+     LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(COALESCE(mc.product_name, p.name))
      WHERE  s.machine_id = :machine_id
      ORDER BY s.sale_time DESC
      LIMIT 30"

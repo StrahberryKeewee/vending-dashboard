@@ -29,7 +29,7 @@ $stmt = $pdo->prepare(
             ), 0) AS profit
      FROM   sales s
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-     LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name
+     LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(mc.product_name)
      WHERE  YEAR(s.sale_time)  = :year
        AND  MONTH(s.sale_time) = :month' . $mFilter . '
      GROUP  BY DATE(s.sale_time)

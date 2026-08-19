@@ -29,7 +29,7 @@ $profitExpr = "COALESCE(SUM(
 ), 0)";
 
 $joins = 'LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-          LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name';
+          LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(mc.product_name)';
 
 if ($period === 'daily') {
     $stmt = $pdo->prepare(

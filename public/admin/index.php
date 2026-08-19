@@ -316,6 +316,16 @@ $username = $_SERVER['REMOTE_USER']
             <span class="item-kpi-sub" id="ikpiAvgPrice"></span>
           </div>
           <div class="item-kpi-card">
+            <span class="item-kpi-label">Total Profit</span>
+            <span class="item-kpi-value item-kpi-value--green" id="ikpiProfit">—</span>
+            <span class="item-kpi-sub" id="ikpiProfitSub"></span>
+          </div>
+          <div class="item-kpi-card">
+            <span class="item-kpi-label">Profit Margin</span>
+            <span class="item-kpi-value" id="ikpiMargin">—</span>
+            <span class="item-kpi-sub">net profit per sale</span>
+          </div>
+          <div class="item-kpi-card">
             <span class="item-kpi-label">Avg / Day</span>
             <span class="item-kpi-value" id="ikpiDaily">—</span>
             <span class="item-kpi-sub" id="ikpiDaysActive"></span>

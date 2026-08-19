@@ -33,7 +33,7 @@ $totalStmt = $pdo->prepare(
             $profitExpr AS profit
      FROM   sales s
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-     LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name
+     LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(mc.product_name)
      WHERE  YEAR(s.sale_time) = :year" . $machineFilter
 );
 $totalStmt->execute(array_merge([':year' => $year], $machineParams));
@@ -60,7 +60,7 @@ $catStmt = $pdo->prepare(
      FROM   sales s
      LEFT JOIN products p         ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-     LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name
+     LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(mc.product_name)
      WHERE  YEAR(s.sale_time) = :year" . $machineFilter . '
      GROUP BY category'
 );
