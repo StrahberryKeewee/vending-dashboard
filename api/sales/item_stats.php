@@ -11,8 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $pdo = Database::connect();
 
+$machineId = trim($_GET['machine_id'] ?? '');
+$mFilter   = $machineId !== '' ? ' AND s.machine_id = :machine_id' : '';
+$mParam    = $machineId !== '' ? [':machine_id' => $machineId] : [];
+
 // Per-item sales stats
-$statsStmt = $pdo->query(
+$statsStmt = $pdo->prepare(
     'SELECT   COALESCE(mc.product_name, p.name)  AS product_name,
               COALESCE(mc.category,     p.category) AS category,
               SUM(s.quantity)                      AS total_qty,
@@ -36,10 +40,11 @@ $statsStmt = $pdo->query(
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id
                                   AND mc.column_num = s.vend_column
      LEFT JOIN product_pricing pp ON LOWER(pp.product_name) = LOWER(COALESCE(mc.product_name, p.name))
-     WHERE    COALESCE(mc.product_name, p.name) IS NOT NULL
+     WHERE    COALESCE(mc.product_name, p.name) IS NOT NULL' . $mFilter . '
      GROUP BY product_name, category
      ORDER BY total_revenue DESC'
 );
+$statsStmt->execute($mParam);
 $items = $statsStmt->fetchAll();
 
 // Current stock per item — with location label

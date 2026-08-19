@@ -422,6 +422,9 @@ $username = $_SERVER['REMOTE_USER']
 
       <div class="section-header">
         <h2 class="section-title">Profit Analysis</h2>
+        <select id="profitMachineSelect" class="machine-select">
+          <option value="">All Machines</option>
+        </select>
       </div>
 
       <!-- Summary strip -->

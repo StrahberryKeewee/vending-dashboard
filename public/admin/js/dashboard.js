@@ -1117,24 +1117,42 @@ function initNav() {
 
 let profitAnalysisLoaded = false;
 
+let profitMachineId = '';
+let profitItems     = [];
+
 async function loadProfitAnalysis() {
-  if (!allItemStats.length) {
-    await loadItemStats();
-  }
+  const params = profitMachineId ? `?machine_id=${encodeURIComponent(profitMachineId)}` : '';
+  let data;
+  try {
+    data = await apiFetch(`/sales/item_stats.php${params}`);
+  } catch { return; }
+  profitItems = data.items ?? [];
   renderProfitAnalysis();
 }
 
+function initProfitMachineSelect() {
+  const sel = document.getElementById('profitMachineSelect');
+  // Populate from already-loaded machine list
+  document.querySelectorAll('#machineSelect option').forEach(opt => {
+    if (opt.value) sel.appendChild(opt.cloneNode(true));
+  });
+  sel.addEventListener('change', () => {
+    profitMachineId = sel.value;
+    loadProfitAnalysis();
+  });
+}
+
 function renderProfitAnalysis() {
-  const priced = allItemStats.filter(i => i.profit_margin_pct != null);
+  const priced = profitItems.filter(i => i.profit_margin_pct != null);
 
   // ── Summary strip ──────────────────────────────────────────────────────
-  const totalRev    = allItemStats.reduce((s, i) => s + (i.total_revenue ?? 0), 0);
+  const totalRev    = profitItems.reduce((s, i) => s + (i.total_revenue ?? 0), 0);
   const totalProfit = priced.reduce((s, i) => s + (i.total_profit ?? 0), 0);
   const overallMargin = totalRev > 0 ? (totalProfit / totalRev * 100).toFixed(1) : null;
   document.getElementById('profitSumRevenue').textContent = formatCurrency(totalRev);
   document.getElementById('profitSumProfit').textContent  = formatCurrency(totalProfit);
   document.getElementById('profitSumMargin').textContent  = overallMargin != null ? `${overallMargin}%` : '—';
-  document.getElementById('profitSumItems').textContent   = `${priced.length} / ${allItemStats.length}`;
+  document.getElementById('profitSumItems').textContent   = `${priced.length} / ${profitItems.length}`;
 
   // ── Top 5 by margin % ──────────────────────────────────────────────────
   const topMargin = [...priced].sort((a, b) => b.profit_margin_pct - a.profit_margin_pct).slice(0, 5);
@@ -1156,7 +1174,7 @@ function renderProfitAnalysis() {
 
   // ── Profit by category ─────────────────────────────────────────────────
   const catMap = {};
-  allItemStats.forEach(i => {
+  profitItems.forEach(i => {
     const cat = i.category ?? 'Other';
     catMap[cat] = (catMap[cat] ?? 0) + i.total_profit;
   });
@@ -1621,6 +1639,7 @@ async function init() {
   initMachineDetail();
   initInventory();
   await loadMachinesFromApi();
+  initProfitMachineSelect();
   await Promise.all([loadSummary(), loadTrend(currentPeriod), loadFeedback(), loadAnalyticsStats(), loadLatestSale()]);
 
   // Username embedded by PHP at page load — no AJAX needed
