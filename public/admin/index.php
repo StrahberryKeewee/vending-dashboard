@@ -282,9 +282,11 @@ $username = $_SERVER['REMOTE_USER']
             <span class="item-picker-title">Item Statistics</span>
             <span class="item-picker-hint">Select an item to see its full performance breakdown</span>
           </div>
-          <select id="itemSelect" class="item-select">
-            <option value="">— Select an item —</option>
-          </select>
+          <div class="item-search-wrap" id="itemSearchWrap">
+            <input type="text" id="itemSearchInput" class="item-search-input" placeholder="Search items…" autocomplete="off">
+            <svg class="item-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div class="item-search-dropdown" id="itemSearchDropdown"></div>
+          </div>
         </div>
       </div>
 
