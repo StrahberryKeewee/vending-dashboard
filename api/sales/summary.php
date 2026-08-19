@@ -18,16 +18,28 @@ $machineId = trim($_GET['machine_id'] ?? '');
 
 $pdo = Database::connect();
 
-$machineFilter  = $machineId !== '' ? ' AND s.machine_id = :machine_id' : '';
-$machineParams  = $machineId !== '' ? [':machine_id' => $machineId] : [];
+$machineFilter = $machineId !== '' ? ' AND s.machine_id = :machine_id' : '';
+$machineParams = $machineId !== '' ? [':machine_id' => $machineId] : [];
+
+$profitExpr = "COALESCE(SUM(
+    CASE WHEN pp.vending_price > 0
+         THEN s.amount * (pp.net_profit / pp.vending_price)
+         ELSE 0
+    END
+), 0)";
 
 $totalStmt = $pdo->prepare(
-    'SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total
+    "SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total,
+            $profitExpr AS profit
      FROM   sales s
-     WHERE  YEAR(s.sale_time) = :year' . $machineFilter
+     LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
+     LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name
+     WHERE  YEAR(s.sale_time) = :year" . $machineFilter
 );
 $totalStmt->execute(array_merge([':year' => $year], $machineParams));
-$total = (float) $totalStmt->fetchColumn();
+$totalRow  = $totalStmt->fetch();
+$total     = (float) $totalRow['total'];
+$profitYtd = (float) $totalRow['profit'];
 
 $prevStmt = $pdo->prepare(
     'SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total
@@ -42,38 +54,42 @@ $growthPercent = $prevTotal > 0
     : 0.0;
 
 $catStmt = $pdo->prepare(
-    'SELECT   COALESCE(mc.category, p.category) AS category,
-              COALESCE(SUM(s.amount * s.quantity), 0) AS revenue
-     FROM     sales s
-     LEFT JOIN products p        ON p.id = s.product_id
+    "SELECT COALESCE(mc.category, p.category) AS category,
+            COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+            $profitExpr AS profit
+     FROM   sales s
+     LEFT JOIN products p         ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
-     WHERE    YEAR(s.sale_time) = :year' . $machineFilter . '
+     LEFT JOIN product_pricing pp ON pp.product_name = mc.product_name
+     WHERE  YEAR(s.sale_time) = :year" . $machineFilter . '
      GROUP BY category'
 );
 $catStmt->execute(array_merge([':year' => $year], $machineParams));
 $catRows = $catStmt->fetchAll();
 
 $categoryMap = [
-    'Snack'           => ['label' => 'Snacks',           'color' => '#ef4444'],
-    'Beverage'        => ['label' => 'Beverages',        'color' => '#f59e0b'],
-    'Health Products' => ['label' => 'Health Products',  'color' => '#3b82f6'],
-    'School Supplies' => ['label' => 'School Supplies',  'color' => '#22c55e'],
+    'Snack'           => ['label' => 'Snacks',          'color' => '#ef4444'],
+    'Beverage'        => ['label' => 'Beverages',       'color' => '#f59e0b'],
+    'Health Products' => ['label' => 'Health Products', 'color' => '#3b82f6'],
+    'School Supplies' => ['label' => 'School Supplies', 'color' => '#22c55e'],
 ];
 
-$categories = [];
-$catRevenue = [];
+$catData = [];
 foreach ($catRows as $row) {
-    $catRevenue[$row['category']] = (float) $row['revenue'];
+    $catData[$row['category']] = ['revenue' => (float)$row['revenue'], 'profit' => (float)$row['profit']];
 }
 
+$categories = [];
 foreach ($categoryMap as $key => $meta) {
-    $rev     = $catRevenue[$key] ?? 0.0;
+    $rev     = $catData[$key]['revenue'] ?? 0.0;
+    $profit  = $catData[$key]['profit']  ?? 0.0;
     $percent = $total > 0 ? round(($rev / $total) * 100, 1) : 0.0;
     $categories[] = [
         'key'     => $key,
         'label'   => $meta['label'],
         'color'   => $meta['color'],
         'revenue' => $rev,
+        'profit'  => $profit,
         'percent' => $percent,
     ];
 }
@@ -81,6 +97,7 @@ foreach ($categoryMap as $key => $meta) {
 jsonResponse([
     'year'           => $year,
     'total_ytd'      => $total,
+    'profit_ytd'     => round($profitYtd, 2),
     'growth_percent' => $growthPercent,
     'categories'     => $categories,
 ]);

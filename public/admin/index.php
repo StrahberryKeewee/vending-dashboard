@@ -112,6 +112,10 @@ $username = $_SERVER['REMOTE_USER']
               <polyline points="17 6 23 6 23 12"/>
             </svg>
             Sales Overview
+            <div class="rev-profit-toggle" id="revProfitToggle">
+              <button class="rev-profit-btn active" id="revProfitRevBtn">Revenue</button>
+              <button class="rev-profit-btn" id="revProfitProfBtn">Profit</button>
+            </div>
           </div>
           <div class="card__controls">
             <select class="machine-select" id="machineSelect">
@@ -307,7 +311,7 @@ $username = $_SERVER['REMOTE_USER']
             <span class="item-kpi-sub" id="ikpiTxns"></span>
           </div>
           <div class="item-kpi-card">
-            <span class="item-kpi-label">Total Revenue</span>
+            <span class="item-kpi-label" id="ikpiRevLabel">Total Revenue</span>
             <span class="item-kpi-value item-kpi-value--green" id="ikpiRev">—</span>
             <span class="item-kpi-sub" id="ikpiAvgPrice"></span>
           </div>
@@ -524,7 +528,8 @@ $username = $_SERVER['REMOTE_USER']
                     <th>Time</th>
                     <th>Column</th>
                     <th>Item</th>
-                    <th>Amount</th>
+                    <th id="recentSalesAmountHeader">Amount</th>
+                    <th class="profit-col-header" id="recentSalesProfitHeader" style="display:none">Profit</th>
                     <th></th>
                   </tr>
                 </thead>

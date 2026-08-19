@@ -21,11 +21,17 @@ $statsStmt = $pdo->query(
               MIN(s.sale_time)                     AS first_sold,
               MAX(s.sale_time)                     AS last_sold,
               COUNT(DISTINCT s.machine_id)         AS machine_count,
-              COUNT(*)                             AS txn_count
+              COUNT(*)                             AS txn_count,
+              COALESCE(SUM(
+                  CASE WHEN pp.vending_price > 0
+                       THEN s.amount * (pp.net_profit / pp.vending_price)
+                       ELSE 0 END
+              ), 0)                                AS total_profit
      FROM     sales s
      LEFT JOIN products p        ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id
                                   AND mc.column_num = s.vend_column
+     LEFT JOIN product_pricing pp ON pp.product_name = COALESCE(mc.product_name, p.name)
      WHERE    COALESCE(mc.product_name, p.name) IS NOT NULL
      GROUP BY product_name, category
      ORDER BY total_revenue DESC'
@@ -72,6 +78,7 @@ $result = array_map(function ($item) use ($stockByItem) {
         'category'       => $item['category'],
         'total_qty'      => (int)   $item['total_qty'],
         'total_revenue'  => round((float) $item['total_revenue'], 2),
+        'total_profit'   => round((float) $item['total_profit'],  2),
         'avg_price'      => round((float) $item['avg_price'], 2),
         'txn_count'      => (int)   $item['txn_count'],
         'machine_count'  => (int)   $item['machine_count'],

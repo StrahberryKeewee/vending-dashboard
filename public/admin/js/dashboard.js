@@ -8,6 +8,28 @@ let currentPeriod     = 'weekly';
 let currentMachine    = '';
 let allMachines       = [];
 
+let profitMode        = false;
+let cachedSummary     = null;
+let cachedTrend       = null;
+
+function setProfitMode(enabled) {
+  profitMode = enabled;
+  document.getElementById('revProfitRevBtn').classList.toggle('active', !enabled);
+  document.getElementById('revProfitProfBtn').classList.toggle('active', enabled);
+
+  // Show/hide profit column in recent sales table
+  const profHdr = document.getElementById('recentSalesProfitHeader');
+  if (profHdr) profHdr.style.display = enabled ? '' : 'none';
+  document.querySelectorAll('.recent-sales-profit-cell').forEach(el => {
+    el.style.display = enabled ? '' : 'none';
+  });
+
+  if (cachedSummary) renderSummary();
+  if (cachedTrend)   renderTrend();
+  if (allItemStats.length) renderItemList();
+  renderCalendar();
+}
+
 async function apiFetch(path) {
   const res = await fetch(API_BASE + path);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -56,10 +78,20 @@ async function loadSummary() {
   try {
     data = await apiFetch('/sales/summary.php?year=' + new Date().getFullYear() + machineParam());
   } catch {
-    data = { total_ytd: 0, growth_percent: 0, categories: [] };
+    data = { total_ytd: 0, profit_ytd: 0, growth_percent: 0, categories: [] };
   }
+  cachedSummary = data;
+  renderSummary();
+}
 
-  document.getElementById('ytdAmount').textContent = formatCurrency(data.total_ytd);
+function renderSummary() {
+  const data = cachedSummary;
+  if (!data) return;
+
+  const ytd = profitMode ? (data.profit_ytd ?? 0) : data.total_ytd;
+  document.getElementById('ytdAmount').textContent = formatCurrency(ytd);
+  document.getElementById('donutCenter').querySelector('.donut-center__label').textContent =
+    profitMode ? 'Total Profit YTD' : 'Total YTD';
 
   const growthEl = document.getElementById('ytdGrowth');
   const sign = data.growth_percent >= 0 ? '+' : '';
@@ -70,23 +102,28 @@ async function loadSummary() {
   const ctx = document.getElementById('donutChart').getContext('2d');
   if (donutChart) donutChart.destroy();
 
-  const cats = (data.categories ?? []).filter(c => c.revenue > 0);
+  const valueKey = profitMode ? 'profit' : 'revenue';
+  const cats = (data.categories ?? []).filter(c => (c[valueKey] ?? 0) > 0);
+  const catTotal = cats.reduce((s, c) => s + (c[valueKey] ?? 0), 0);
 
   if (cats.length) {
-    legendEl.innerHTML = cats.map(c => `
-      <div class="legend-item">
-        <span class="legend-dot" style="background:${c.color}"></span>
-        <span>${c.label}</span>
-        <strong>${c.percent}%</strong>
-      </div>
-    `).join('');
+    legendEl.innerHTML = cats.map(c => {
+      const val = c[valueKey] ?? 0;
+      const pct = catTotal > 0 ? (val / catTotal * 100).toFixed(1) : '0.0';
+      return `
+        <div class="legend-item">
+          <span class="legend-dot" style="background:${c.color}"></span>
+          <span>${c.label}</span>
+          <strong>${pct}%</strong>
+        </div>`;
+    }).join('');
 
     donutChart = new Chart(ctx, {
       type: 'doughnut',
       data: {
         labels: cats.map(c => c.label),
         datasets: [{
-          data:            cats.map(c => c.revenue),
+          data:            cats.map(c => c[valueKey] ?? 0),
           backgroundColor: cats.map(c => c.color),
           borderWidth:     3,
           borderColor:     '#ffffff',
@@ -97,7 +134,11 @@ async function loadSummary() {
         cutout: '68%',
         plugins: { legend: { display: false }, tooltip: {
           callbacks: {
-            label: c => ` ${c.label}: ${formatCurrency(c.raw)} (${cats[c.dataIndex].percent}%)`,
+            label: c => {
+              const val = c.raw;
+              const pct = catTotal > 0 ? (val / catTotal * 100).toFixed(1) : '0.0';
+              return ` ${c.label}: ${formatCurrency(val)} (${pct}%)`;
+            },
           },
         }},
         animation: { animateRotate: true, duration: 800 },
@@ -114,7 +155,7 @@ async function loadSummary() {
       data: {
         labels: ['Total Sales'],
         datasets: [{
-          data:            [data.total_ytd || 1],
+          data:            [ytd || 1],
           backgroundColor: ['#2d6af4'],
           borderWidth:     3,
           borderColor:     '#ffffff',
@@ -125,7 +166,7 @@ async function loadSummary() {
         cutout: '68%',
         plugins: { legend: { display: false }, tooltip: {
           callbacks: {
-            label: () => ` ${formatCurrency(data.total_ytd)}`,
+            label: () => ` ${formatCurrency(ytd)}`,
           },
         }},
         animation: { animateRotate: true, duration: 800 },
@@ -194,16 +235,27 @@ async function loadTrend(period) {
     data = await apiFetch(`/sales/weekly.php?period=${period}${machineParam()}`);
   } catch {
     const defaults = {
-      daily:   { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data: [620,740,590,810,930,470,380] },
-      weekly:  { labels: ['Week 1','Week 2','Week 3','Week 4'],       data: [3100,3300,3700,4500] },
-      monthly: { labels: ['Jan','Feb','Mar','Apr'],                   data: [18200,19400,21500,23800] },
+      daily:   { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], data: [620,740,590,810,930,470,380],  profit: [430,510,410,560,645,325,265] },
+      weekly:  { labels: ['Week 1','Week 2','Week 3','Week 4'],       data: [3100,3300,3700,4500],          profit: [2145,2285,2565,3115] },
+      monthly: { labels: ['Jan','Feb','Mar','Apr'],                   data: [18200,19400,21500,23800],      profit: [12600,13430,14880,16480] },
     };
     data = defaults[period] ?? defaults.weekly;
     data.period = period;
   }
+  cachedTrend = data;
+  renderTrend();
+}
 
-  const titles = { daily: 'Daily Profit Trend', weekly: 'Weekly Profit Trend', monthly: 'Monthly Profit Trend' };
-  document.getElementById('trendTitle').textContent = titles[data.period] ?? 'Profit Trend';
+function renderTrend() {
+  const data = cachedTrend;
+  if (!data) return;
+
+  const revLabel   = { daily: 'Daily Revenue Trend', weekly: 'Weekly Revenue Trend', monthly: 'Monthly Revenue Trend' };
+  const profLabel  = { daily: 'Daily Profit Trend',  weekly: 'Weekly Profit Trend',  monthly: 'Monthly Profit Trend'  };
+  const titles     = profitMode ? profLabel : revLabel;
+  document.getElementById('trendTitle').textContent = titles[data.period] ?? (profitMode ? 'Profit Trend' : 'Revenue Trend');
+
+  const values = profitMode ? (data.profit ?? data.data) : data.data;
 
   const ctx = document.getElementById('trendChart').getContext('2d');
   if (trendChart) trendChart.destroy();
@@ -213,7 +265,7 @@ async function loadTrend(period) {
     data: {
       labels: data.labels,
       datasets: [{
-        data:            data.data,
+        data:            values,
         borderColor:     '#22c55e',
         backgroundColor: 'rgba(34,197,94,.08)',
         borderWidth:     2.5,
@@ -392,15 +444,22 @@ async function loadRecentSales(machineId) {
     return;
   }
 
+  const profHdr = document.getElementById('recentSalesProfitHeader');
+  if (profHdr) profHdr.style.display = profitMode ? '' : 'none';
+
   tbody.innerHTML = sales.map(s => {
     const d    = new Date(s.sale_time);
     const time = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const profitCell = `<td class="recent-sales-profit-cell" style="display:${profitMode ? '' : 'none'}">${
+      s.profit != null ? formatCurrency(s.profit) : '<span style="color:var(--text-muted)">—</span>'
+    }</td>`;
     return `<tr>
       <td style="white-space:nowrap">${escHtml(time)}</td>
       <td>${s.vend_column ? escHtml(s.vend_column) : '<span style="color:var(--text-muted)">--</span>'}</td>
       <td>${s.product_name ? escHtml(s.product_name) : '<span style="color:var(--text-muted)">--</span>'}</td>
       <td>${formatCurrency(s.amount)}</td>
+      ${profitCell}
       <td>
         <button class="btn-delete" onclick="deleteSale(${s.id})" title="Delete">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -1112,7 +1171,9 @@ document.getElementById('itemSelect').addEventListener('change', async function 
   // KPIs
   document.getElementById('ikpiQty').textContent   = item.total_qty.toLocaleString();
   document.getElementById('ikpiTxns').textContent  = `${item.txn_count} transactions`;
-  document.getElementById('ikpiRev').textContent   = formatCurrency(item.total_revenue);
+  const revVal = profitMode && item.total_profit != null ? item.total_profit : item.total_revenue;
+  document.getElementById('ikpiRev').textContent   = formatCurrency(revVal);
+  document.getElementById('ikpiRevLabel').textContent = profitMode ? 'Total Profit' : 'Total Revenue';
   document.getElementById('ikpiAvgPrice').textContent = `avg ${formatCurrency(item.avg_price)} each`;
   document.getElementById('ikpiDaily').textContent = `${item.avg_daily_qty} units`;
   document.getElementById('ikpiDaysActive').textContent = daysActive ? `over ${daysActive} days` : '';
@@ -1235,14 +1296,23 @@ async function loadCalendarMonth() {
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('calMonthLabel').textContent = `${MONTHS[calMonth - 1]} ${calYear}`;
 
-  const maxRev    = Math.max(...Object.values(calDayData).map(d => d.revenue), 1);
-  const bestDate  = Object.entries(calDayData).sort((a, b) => b[1].revenue - a[1].revenue)[0]?.[0];
+  renderCalendar();
+}
+
+function renderCalendar() {
+  if (!calDayData) return;
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const valueKey = profitMode ? 'profit' : 'revenue';
+  const maxVal    = Math.max(...Object.values(calDayData).map(d => d[valueKey] ?? d.revenue), 1);
+  const bestDate  = Object.entries(calDayData).sort((a, b) => (b[1][valueKey] ?? b[1].revenue) - (a[1][valueKey] ?? a[1].revenue))[0]?.[0];
 
   const firstDay = new Date(calYear, calMonth - 1, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth, 0).getDate();
   const today = new Date().toISOString().slice(0, 10);
 
-  // Blank cells before first day
   for (let i = 0; i < firstDay; i++) {
     const blank = document.createElement('div');
     blank.className = 'cal-cell cal-cell--blank';
@@ -1257,11 +1327,12 @@ async function loadCalendarMonth() {
     cell.dataset.date = dateStr;
 
     if (info) {
-      const intensity = Math.round((info.revenue / maxRev) * 100);
+      const val = info[valueKey] ?? info.revenue;
+      const intensity = Math.round((val / maxVal) * 100);
       cell.style.setProperty('--cal-intensity', intensity);
       cell.innerHTML = `
         <span class="cal-cell-day">${d}</span>
-        <span class="cal-cell-rev">${formatCurrency(info.revenue)}</span>
+        <span class="cal-cell-rev">${formatCurrency(val)}</span>
         <span class="cal-cell-txn">${info.txn_count} sale${info.txn_count !== 1 ? 's' : ''}</span>`;
     } else {
       cell.innerHTML = `<span class="cal-cell-day">${d}</span>`;
@@ -1288,29 +1359,33 @@ async function openCalDay(dateStr) {
   } catch { return; }
 
   const s = data.summary;
+  const sumVal = profitMode && s.profit != null ? s.profit : s.revenue;
   document.getElementById('calDetailSummary').textContent =
-    `${s.txn_count} transaction${s.txn_count !== 1 ? 's' : ''} · ${formatCurrency(s.revenue)} total · avg ${formatCurrency(s.avg_price)}`;
+    `${s.txn_count} transaction${s.txn_count !== 1 ? 's' : ''} · ${formatCurrency(sumVal)} ${profitMode ? 'profit' : 'total'} · avg ${formatCurrency(s.avg_price)}`;
 
   // Items grid
   document.getElementById('calItemsGrid').innerHTML = (data.items ?? []).map(item => {
     const cat = item.category ?? '';
     const col = CAT_COLORS[cat] ?? '#6b7280';
+    const itemVal = profitMode && item.profit != null ? item.profit : item.revenue;
     return `<div class="cal-item-row">
       <span class="cal-item-name">${escHtml(item.product_name ?? '—')}</span>
       <span class="item-tag" style="background:${col}22;color:${col}">${escHtml(cat)}</span>
       <span class="cal-item-qty">${item.qty}×</span>
-      <span class="cal-item-rev">${formatCurrency(item.revenue)}</span>
+      <span class="cal-item-rev">${formatCurrency(itemVal)}</span>
     </div>`;
   }).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No items</p>';
 
   // Transaction log
-  document.getElementById('calTxnList').innerHTML = (data.transactions ?? []).map(t => `
-    <div class="cal-txn-row">
+  document.getElementById('calTxnList').innerHTML = (data.transactions ?? []).map(t => {
+    const txnVal = profitMode && t.profit != null ? t.profit : t.amount;
+    return `<div class="cal-txn-row">
       <span class="cal-txn-time">${escHtml(t.time)}</span>
       <span class="cal-txn-name">${escHtml(t.product_name ?? '—')}</span>
       ${t.location ? `<span class="cal-txn-loc">${escHtml(t.location)}</span>` : ''}
-      <span class="cal-txn-price">${t.quantity > 1 ? `${t.quantity}× ` : ''}${formatCurrency(t.amount)}</span>
-    </div>`).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No transactions</p>';
+      <span class="cal-txn-price">${t.quantity > 1 ? `${t.quantity}× ` : ''}${formatCurrency(txnVal)}</span>
+    </div>`;
+  }).join('') || '<p style="color:var(--text-muted);font-size:.82rem">No transactions</p>';
 }
 
 function initPeriodToggle() {
@@ -1345,10 +1420,16 @@ function initTheme() {
   });
 }
 
+function initRevProfitToggle() {
+  document.getElementById('revProfitRevBtn')?.addEventListener('click',  () => setProfitMode(false));
+  document.getElementById('revProfitProfBtn')?.addEventListener('click', () => setProfitMode(true));
+}
+
 async function init() {
   initNav();
   initTheme();
   initPeriodToggle();
+  initRevProfitToggle();
   initQrModal();
   initMachineDetail();
   initInventory();
