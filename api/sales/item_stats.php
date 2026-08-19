@@ -29,7 +29,8 @@ $statsStmt = $pdo->query(
               ), 0)                                AS total_profit,
               MAX(CASE WHEN pp.vending_price > 0
                        THEN ROUND(pp.net_profit / pp.vending_price * 100, 1)
-                       ELSE NULL END)              AS profit_margin_pct
+                       ELSE NULL END)              AS profit_margin_pct,
+              MAX(pp.net_profit)                   AS net_profit_per_unit
      FROM     sales s
      LEFT JOIN products p        ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id
@@ -82,7 +83,8 @@ $result = array_map(function ($item) use ($stockByItem) {
         'total_qty'      => (int)   $item['total_qty'],
         'total_revenue'  => round((float) $item['total_revenue'], 2),
         'total_profit'      => round((float) $item['total_profit'],  2),
-        'profit_margin_pct' => $item['profit_margin_pct'] !== null ? (float) $item['profit_margin_pct'] : null,
+        'profit_margin_pct'   => $item['profit_margin_pct'] !== null ? (float) $item['profit_margin_pct'] : null,
+        'net_profit_per_unit' => $item['net_profit_per_unit'] !== null ? round((float) $item['net_profit_per_unit'], 2) : null,
         'avg_price'      => round((float) $item['avg_price'], 2),
         'txn_count'      => (int)   $item['txn_count'],
         'machine_count'  => (int)   $item['machine_count'],

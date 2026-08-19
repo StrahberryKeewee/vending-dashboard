@@ -1363,17 +1363,11 @@ async function selectItem(name) {
   document.getElementById('ikpiRev').textContent      = formatCurrency(item.total_revenue);
   document.getElementById('ikpiAvgPrice').textContent = `avg ${formatCurrency(item.avg_price)} each`;
 
-  const hasProfit = item.total_profit > 0;
-  document.getElementById('ikpiProfit').textContent = hasProfit ? formatCurrency(item.total_profit) : '—';
-  if (hasProfit && item.total_revenue > 0) {
-    const pct = (item.total_profit / item.total_revenue * 100).toFixed(1);
-    document.getElementById('ikpiProfitSub').textContent = `${pct}% of revenue`;
-  } else {
-    document.getElementById('ikpiProfitSub').textContent = 'no pricing data';
-  }
-
-  const margin = item.profit_margin_pct;
-  document.getElementById('ikpiMargin').textContent = margin != null ? `${margin}%` : '—';
+  const ppu = item.net_profit_per_unit;
+  document.getElementById('ikpiProfit').textContent    = ppu != null ? formatCurrency(ppu) : '—';
+  document.getElementById('ikpiProfitSub').textContent = ppu != null && item.profit_margin_pct != null
+    ? `${item.profit_margin_pct}% margin`
+    : 'no pricing data';
   document.getElementById('ikpiLastSold').textContent = lastSold;
   document.getElementById('ikpiLastSub').textContent  =
     item.days_since_last !== null ? `${item.days_since_last} days ago` : '';
