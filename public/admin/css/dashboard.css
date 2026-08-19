@@ -1998,17 +1998,14 @@ body {
 
 .item-search-dropdown {
   display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
+  position: fixed;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow);
   max-height: 260px;
   overflow-y: auto;
-  z-index: 200;
+  z-index: 1000;
 }
 
 .item-search-dropdown.open { display: block; }

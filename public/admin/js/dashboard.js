@@ -1259,6 +1259,13 @@ function initItemSearch() {
   const dropdown = document.getElementById('itemSearchDropdown');
   let activeIdx  = -1;
 
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.top    = `${rect.bottom + 4}px`;
+    dropdown.style.left   = `${rect.left}px`;
+    dropdown.style.width  = `${rect.width}px`;
+  }
+
   function showDropdown(items) {
     activeIdx = -1;
     if (!items.length) { dropdown.classList.remove('open'); return; }
@@ -1269,6 +1276,7 @@ function initItemSearch() {
         <span class="item-tag" style="background:${col}22;color:${col};font-size:.7rem">${escHtml(item.category ?? '')}</span>
       </div>`;
     }).join('');
+    positionDropdown();
     dropdown.classList.add('open');
     dropdown.querySelectorAll('.item-search-option').forEach(opt => {
       opt.addEventListener('mousedown', e => {
