@@ -97,7 +97,7 @@ $items = [
     ['Peanut MM',              2.00, 0.91],  // = Peanut M&Ms
     ['Honeybuns',              1.75, 0.94],  // = Cloverhill Honey Bun
     ['Hot Fries',              1.25, 0.72],  // = Chesters Hot Fries
-    ['Oreos',                  2.00, 0.91],  // cookie tier, same margin as candy
+    ['Oreos',                  2.00, 0.53],
     // Union machine aliases
     ['AA Batteries',           2.50, 1.29],  // = Batteries - AA
     ['AAA Batteries',          2.00, 1.20],  // = Batteries - AAA
@@ -115,8 +115,8 @@ $items = [
     ['Erasers',                2.00, 1.26],  // = Pink Eraser
     ['Notebooks',              1.50, 0.89],  // = Pocket Notebook
     ['Bar Soap',               1.50, 0.97],  // = Body Soap
-    ['Toothbrush & Paste',     3.50, 1.75],  // combo; toothpaste $2.25 + brush
-    ['Laundry Combo',          3.00, 1.50],  // Tide Pods + dryer sheet combo
+    ['Toothbrush & Paste',     3.50, 1.15],
+    ['Laundry Combo',          3.00, 1.11],
 ];
 
 $stmt = $pdo->prepare(
