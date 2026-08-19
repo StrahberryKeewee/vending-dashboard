@@ -15,6 +15,38 @@ CREATE TABLE IF NOT EXISTS product_pricing (
 ");
 
 $items = [
+    // Auto Metal Craft (AMC)
+    ['Baja Blast',                      1.25, 0.66],
+    ['Cheetos',                         1.25, 0.81],
+    ['Cheez-It',                        1.25, 0.85],
+    ['Cherry Pepsi',                    1.25, 0.66],
+    ['Chesters Hot Fries',              1.25, 0.72],
+    ['Cloverhill Cherry Bearclaw',      1.75, 0.61],
+    ['Cloverhill Honey Bun',            1.75, 0.94],
+    ['Coke',                            1.25, 0.66],
+    ['Cream and Chives Cracker',        1.25, 0.98],
+    ['Diet Coke',                       1.25, 0.66],
+    ['Doritos Cool Ranch',              1.25, 0.81],
+    ['Doritos Nacho Cheese',            1.25, 0.81],
+    ['Dr Pepper',                       1.25, 0.66],
+    ['Lays BBQ',                        1.25, 0.81],
+    ['Lays Orignal',                    1.25, 0.81],
+    ['M&Ms',                            2.00, 0.91],
+    ['Milky Way',                       2.00, 0.91],
+    ['Mtn Dew',                         1.25, 0.66],
+    ['PB Cracker',                      1.25, 0.98],
+    ['Peanut M&Ms',                     2.00, 0.91],
+    ['Pepsi',                           1.25, 0.66],
+    ['Reeses Cups',                     2.00, 0.73],
+    ['Ruffles Sour Cream and Onion',    1.25, 0.81],
+    ['Snickers',                        2.00, 0.91],
+    ['Sprite',                          1.25, 0.66],
+    ['Toast Chee Cracker',              1.25, 0.98],
+    ['Toast Chee PB Cracker',           1.25, 0.98],
+    ['Trail Mix',                       1.25, 0.64],
+    ['Vernors',                         1.25, 0.66],
+
+    // The Union
     ['Pens',                 2.00, 1.38],
     ['Pencils',              2.00, 1.11],
     ['Yellow Highlighters',  2.00, 1.29],
