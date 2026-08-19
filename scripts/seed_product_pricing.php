@@ -97,7 +97,7 @@ $items = [
     ['Peanut MM',              2.00, 0.91],  // = Peanut M&Ms
     ['Honeybuns',              1.75, 0.94],  // = Cloverhill Honey Bun
     ['Hot Fries',              1.25, 0.72],  // = Chesters Hot Fries
-    ['Oreos',                  2.00, 0.53],
+    ['Oreos',                  2.00, 1.35],
     // Union machine aliases
     ['AA Batteries',           2.50, 1.29],  // = Batteries - AA
     ['AAA Batteries',          2.00, 1.20],  // = Batteries - AAA
