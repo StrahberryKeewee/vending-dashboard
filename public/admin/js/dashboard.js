@@ -1318,7 +1318,7 @@ function initItemSearch() {
   });
 }
 
-function selectItem(name) {
+async function selectItem(name) {
   const input    = document.getElementById('itemSearchInput');
   const dropdown = document.getElementById('itemSearchDropdown');
   input.value = name;
