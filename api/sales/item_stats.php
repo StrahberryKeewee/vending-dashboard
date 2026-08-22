@@ -20,7 +20,7 @@ $statsStmt = $pdo->prepare(
     'SELECT   COALESCE(mc.product_name, p.name)  AS product_name,
               COALESCE(mc.category,     p.category) AS category,
               SUM(s.quantity)                      AS total_qty,
-              SUM(s.amount * s.quantity)           AS total_revenue,
+              SUM(s.amount)           AS total_revenue,
               AVG(s.amount)                        AS avg_price,
               MIN(s.sale_time)                     AS first_sold,
               MAX(s.sale_time)                     AS last_sold,

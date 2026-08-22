@@ -30,7 +30,7 @@ $profitExpr = "COALESCE(SUM(
 // Summary
 $summaryStmt = $pdo->prepare(
     "SELECT COUNT(*)               AS txn_count,
-            COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+            COALESCE(SUM(s.amount), 0) AS revenue,
             AVG(s.amount)          AS avg_price,
             $profitExpr            AS profit
      FROM   sales s
@@ -46,7 +46,7 @@ $itemsStmt = $pdo->prepare(
     "SELECT COALESCE(mc.product_name, p.name)     AS product_name,
             COALESCE(mc.category,     p.category) AS category,
             SUM(s.quantity)                        AS qty,
-            COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+            COALESCE(SUM(s.amount), 0) AS revenue,
             COALESCE(SUM(
                 CASE WHEN pp.vending_price > 0
                      THEN s.amount * (pp.net_profit / pp.vending_price)

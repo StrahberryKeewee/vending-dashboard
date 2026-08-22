@@ -29,7 +29,7 @@ $profitExpr = "COALESCE(SUM(
 ), 0)";
 
 $totalStmt = $pdo->prepare(
-    "SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total,
+    "SELECT COALESCE(SUM(s.amount), 0) AS total,
             $profitExpr AS profit
      FROM   sales s
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
@@ -42,7 +42,7 @@ $total     = (float) $totalRow['total'];
 $profitYtd = (float) $totalRow['profit'];
 
 $prevStmt = $pdo->prepare(
-    'SELECT COALESCE(SUM(s.amount * s.quantity), 0) AS total
+    'SELECT COALESCE(SUM(s.amount), 0) AS total
      FROM   sales s
      WHERE  YEAR(s.sale_time) = :prev_year' . $machineFilter
 );
@@ -55,7 +55,7 @@ $growthPercent = $prevTotal > 0
 
 $catStmt = $pdo->prepare(
     "SELECT COALESCE(mc.category, p.category) AS category,
-            COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+            COALESCE(SUM(s.amount), 0) AS revenue,
             $profitExpr AS profit
      FROM   sales s
      LEFT JOIN products p         ON p.id = s.product_id

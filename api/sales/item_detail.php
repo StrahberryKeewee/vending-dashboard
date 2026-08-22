@@ -20,7 +20,7 @@ $pdo = Database::connect();
 $monthStmt = $pdo->prepare(
     'SELECT   DATE_FORMAT(s.sale_time, "%Y-%m") AS month,
               SUM(s.quantity)                    AS qty,
-              SUM(s.amount * s.quantity)         AS revenue
+              SUM(s.amount)         AS revenue
      FROM     sales s
      LEFT JOIN products p        ON p.id = s.product_id
      LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id

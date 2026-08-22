@@ -21,7 +21,7 @@ $pdo = Database::connect();
 $stmt = $pdo->prepare(
     'SELECT DATE(s.sale_time) AS date,
             COUNT(*)          AS txn_count,
-            COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+            COALESCE(SUM(s.amount), 0) AS revenue,
             COALESCE(SUM(
                 CASE WHEN pp.vending_price > 0
                      THEN s.amount * (pp.net_profit / pp.vending_price)

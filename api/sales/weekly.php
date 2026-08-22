@@ -34,7 +34,7 @@ $joins = 'LEFT JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.co
 if ($period === 'daily') {
     $stmt = $pdo->prepare(
         "SELECT DATE_FORMAT(s.sale_time, '%a') AS label,
-                COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+                COALESCE(SUM(s.amount), 0) AS revenue,
                 $profitExpr AS profit
          FROM   sales s $joins
          WHERE  s.sale_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)$mFilter
@@ -44,7 +44,7 @@ if ($period === 'daily') {
 } elseif ($period === 'monthly') {
     $stmt = $pdo->prepare(
         "SELECT DATE_FORMAT(s.sale_time, '%b %Y') AS label,
-                COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+                COALESCE(SUM(s.amount), 0) AS revenue,
                 $profitExpr AS profit
          FROM   sales s $joins
          WHERE  s.sale_time >= DATE_SUB(NOW(), INTERVAL 12 MONTH)$mFilter
@@ -54,7 +54,7 @@ if ($period === 'daily') {
 } else {
     $stmt = $pdo->prepare(
         "SELECT CONCAT('Week ', CEIL(DAY(s.sale_time) / 7.0)) AS label,
-                COALESCE(SUM(s.amount * s.quantity), 0) AS revenue,
+                COALESCE(SUM(s.amount), 0) AS revenue,
                 $profitExpr AS profit
          FROM   sales s $joins
          WHERE  YEAR(s.sale_time) = YEAR(NOW()) AND MONTH(s.sale_time) = MONTH(NOW())$mFilter

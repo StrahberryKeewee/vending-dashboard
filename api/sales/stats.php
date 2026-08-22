@@ -34,7 +34,7 @@ $ratingRow = $ratingStmt->fetch();
 
 $topCatStmt = $pdo->prepare(
     'SELECT COALESCE(mc.category, p.category) AS category,
-            SUM(s.amount * s.quantity)         AS revenue
+            SUM(s.amount)         AS revenue
      FROM   sales s
      LEFT   JOIN products p        ON p.id = s.product_id
      LEFT   JOIN machine_columns mc ON mc.machine_id = s.machine_id AND mc.column_num = s.vend_column
