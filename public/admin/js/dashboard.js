@@ -1152,7 +1152,22 @@ function renderProfitAnalysis() {
   document.getElementById('profitSumRevenue').textContent = formatCurrency(totalRev);
   document.getElementById('profitSumProfit').textContent  = formatCurrency(totalProfit);
   document.getElementById('profitSumMargin').textContent  = overallMargin != null ? `${overallMargin}%` : '—';
-  document.getElementById('profitSumItems').textContent   = `${priced.length} / ${profitItems.length}`;
+  const unpriced = profitItems.filter(i => i.profit_margin_pct == null);
+  const sumItemsEl   = document.getElementById('profitSumItems');
+  const missingEl    = document.getElementById('profitMissingNames');
+  sumItemsEl.textContent = `${priced.length} / ${profitItems.length}`;
+  missingEl.textContent  = '';
+  if (unpriced.length) {
+    sumItemsEl.style.color = '#ef4444';
+    sumItemsEl.onclick = () => {
+      missingEl.textContent = missingEl.textContent
+        ? ''
+        : 'Missing: ' + unpriced.map(i => i.product_name).join(', ');
+    };
+  } else {
+    sumItemsEl.style.color = '#22c55e';
+    sumItemsEl.onclick = null;
+  }
 
   // ── Top 5 by margin % ──────────────────────────────────────────────────
   const topMargin = [...priced].sort((a, b) => b.profit_margin_pct - a.profit_margin_pct).slice(0, 5);

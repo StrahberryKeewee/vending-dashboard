@@ -443,7 +443,8 @@ $username = $_SERVER['REMOTE_USER']
         </div>
         <div class="profit-summary-kpi">
           <span class="profit-summary-label">Items w/ Pricing</span>
-          <span class="profit-summary-value" id="profitSumItems">—</span>
+          <span class="profit-summary-value" id="profitSumItems" style="cursor:pointer" title="Click to see missing items">—</span>
+          <span id="profitMissingNames" style="font-size:.72rem;color:#ef4444;margin-top:4px;text-align:center"></span>
         </div>
       </div>
 
