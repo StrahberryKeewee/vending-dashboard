@@ -117,6 +117,10 @@ $items = [
     ['Bar Soap',               1.50, 0.97],  // = Body Soap
     ['Toothbrush & Paste',     2.25, 1.15],
     ['Laundry Combo',          3.00, 1.11],
+    ['Calculator',             20.00, 1.80], // = Calculator TI-30
+    ['Reeses',                 2.00, 0.73],  // = Reeses Cups
+    ['Panty Liners',           0.75, 0.34],  // = Liners
+    ['Conditioner',            1.50, 0.97],  // fixes typo alias for Condtioner
 ];
 
 $stmt = $pdo->prepare(
