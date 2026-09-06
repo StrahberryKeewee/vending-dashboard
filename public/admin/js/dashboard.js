@@ -1120,13 +1120,19 @@ let profitAnalysisLoaded = false;
 let profitMachineId = '';
 let profitItems     = [];
 
+let profitTotalRevenue = 0;
+
 async function loadProfitAnalysis() {
   const params = profitMachineId ? `?machine_id=${encodeURIComponent(profitMachineId)}` : '';
-  let data;
+  let data, summaryData;
   try {
-    data = await apiFetch(`/sales/item_stats.php${params}`);
+    [data, summaryData] = await Promise.all([
+      apiFetch(`/sales/item_stats.php${params}`),
+      apiFetch(`/sales/summary.php?year=all${params}`),
+    ]);
   } catch { return; }
   profitItems = data.items ?? [];
+  profitTotalRevenue = summaryData?.total_ytd ?? profitItems.reduce((s, i) => s + (i.total_revenue ?? 0), 0);
   renderProfitAnalysis();
 }
 
@@ -1146,7 +1152,7 @@ function renderProfitAnalysis() {
   const priced = profitItems.filter(i => i.profit_margin_pct != null);
 
   // ── Summary strip ──────────────────────────────────────────────────────
-  const totalRev    = profitItems.reduce((s, i) => s + (i.total_revenue ?? 0), 0);
+  const totalRev    = profitTotalRevenue;
   const totalProfit = priced.reduce((s, i) => s + (i.total_profit ?? 0), 0);
   const overallMargin = totalRev > 0 ? (totalProfit / totalRev * 100).toFixed(1) : null;
   document.getElementById('profitSumRevenue').textContent = formatCurrency(totalRev);
